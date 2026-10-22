@@ -382,3 +382,60 @@ def test_ai_off_by_tripwire_is_audited(planned, cfg):
     from planner.control import tripwires
 
     assert tripwires.check_ai(planned, cfg)
+
+
+# ---------- OpenRouter provider ----------
+def test_openrouter_request_shape():
+    seen = {}
+
+    def handler(request):
+        seen["url"], seen["headers"], seen["body"] = (
+            str(request.url),
+            request.headers,
+            json.loads(request.content),
+        )
+        return httpx.Response(
+            200, json={"choices": [{"message": {"content": '{"a": 1}'}, "finish_reason": "stop"}]}
+        )
+
+    c = assistant.OpenRouterClient(
+        api_key="or-key", model="google/gemini-test", transport=httpx.MockTransport(handler)
+    )
+    assert c.generate_json("SYS", "USER", {"type": "object"}) == '{"a": 1}'
+    assert seen["url"] == "https://openrouter.ai/api/v1/chat/completions"
+    assert seen["headers"]["Authorization"] == "Bearer or-key"
+    body = seen["body"]
+    assert body["model"] == "google/gemini-test"
+    assert body["messages"] == [{"role": "system", "content": "SYS"}, {"role": "user", "content": "USER"}]
+    assert body["response_format"]["type"] == "json_schema"
+    assert body["response_format"]["json_schema"]["schema"] == {"type": "object"}
+
+
+@pytest.mark.parametrize(
+    "response,message",
+    [
+        (
+            httpx.Response(402, json={"error": {"code": 402, "message": "Insufficient credits"}}),
+            "HTTP 402: Insufficient credits",
+        ),
+        (
+            httpx.Response(200, json={"choices": [{"message": {"content": "{"}, "finish_reason": "length"}]}),
+            "stopped early: length",
+        ),
+        (httpx.Response(200, json={"choices": []}), "no choices"),
+    ],
+)
+def test_openrouter_errors(response, message):
+    c = assistant.OpenRouterClient(api_key="k", model="m", transport=httpx.MockTransport(lambda r: response))
+    with pytest.raises(LLMError, match=message):
+        c.generate_json("s", "u", {})
+
+
+def test_provider_selection(monkeypatch):
+    monkeypatch.setenv("PLANNER_LLM_PROVIDER", "openrouter")
+    assert isinstance(assistant.make_client(), assistant.OpenRouterClient)
+    monkeypatch.setenv("PLANNER_LLM_PROVIDER", "gemini")
+    assert isinstance(assistant.make_client(), GeminiClient)
+    monkeypatch.setenv("PLANNER_LLM_PROVIDER", "other")
+    with pytest.raises(LLMError, match="unknown PLANNER_LLM_PROVIDER"):
+        assistant.make_client()
