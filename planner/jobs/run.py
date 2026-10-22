@@ -9,7 +9,8 @@ the run and one recommendation per SKU, and write the run files.
 Usage:  python -m planner.jobs.run [--date YYYY-MM-DD] [--ingest-dir DIR] [--trend-basis B] [--out out]
         --date defaults to today; --ingest-dir defaults to $SAP_INBOUND_DIR (skip ingest if unset).
 
-Exit codes: 0 done, 1 data error (nothing recommended), 2 run locked by planner decisions, 3 other failure.
+Exit codes: 0 done (or held by a tripwire), 1 data error (nothing recommended), 2 run locked by planner
+decisions, 3 other failure, 4 paused by a kill switch.
 """
 
 import argparse
@@ -24,6 +25,7 @@ from sqlalchemy import delete, func, select
 
 from planner import models as m
 from planner.config import ROOT, load_config
+from planner.control import switches, tripwires
 from planner.db import make_engine, make_session_factory
 from planner.ingest.load import dataset_for, ingest_folder
 from planner.ingest.validate import errors, validate
@@ -68,6 +70,10 @@ class RunLocked(Exception):
     """A run for this date already has planner decisions, so it cannot be replaced."""
 
 
+class PlannerPaused(Exception):
+    """A kill switch is off."""
+
+
 def write_outputs(rows, issues, cfg, is_festival, outdir):
     os.makedirs(outdir, exist_ok=True)
     with open(os.path.join(outdir, "recommendations.csv"), "w", newline="", encoding="utf-8") as f:
@@ -110,6 +116,8 @@ def _clear_previous(session, run_date):
     previous = session.scalar(select(m.PlanningRun).where(m.PlanningRun.run_date == run_date))
     if previous is None:
         return
+    if previous.status == "held":
+        raise RunLocked(f"run {previous.id} for {run_date} is HELD; an admin must release it first")
     rec_ids = select(m.Recommendation.id).where(m.Recommendation.run_id == previous.id)
     decided = session.scalar(
         select(func.count())
@@ -130,6 +138,8 @@ def plan(session, run_date, cfg, outdir=None):
     """
     run_date = date.fromisoformat(str(run_date))
     cfg = {**cfg, "run_date": run_date.isoformat()}
+    if not switches.is_enabled(session, switches.PLANNER):
+        raise PlannerPaused("planner_enabled is OFF: no run. Use the manual process (see RUNBOOK).")
     _clear_previous(session, run_date)
     run = m.PlanningRun(
         run_date=run_date,
@@ -173,6 +183,8 @@ def plan(session, run_date, cfg, outdir=None):
     run.summary = write_outputs(rows, issues, cfg, is_festival, outdir) if outdir else summarise(rows)
     run.festival_month = is_festival
     run.status, run.finished_at = "completed", datetime.now()
+    session.flush()
+    tripwires.evaluate_run(session, run, cfg)  # may HOLD the run
     session.commit()
     return run
 
@@ -184,6 +196,7 @@ def plan_folder(folder, cfg, outdir=None):
     engine = make_engine("sqlite://")
     Base.metadata.create_all(engine)
     with make_session_factory(engine)() as session:
+        switches.install_defaults(session)
         result = ingest_folder(session, folder, cfg, cfg["run_date"])
         if not result.loaded:
             raise DataError([f"{i.file}: {i.message}" for i in errors(result.issues)])
@@ -207,12 +220,19 @@ def main(argv=None):
     ap.add_argument("--ingest-dir", default=os.environ.get("SAP_INBOUND_DIR"), help="SAP export folder")
     ap.add_argument("--trend-basis", choices=["unadjusted", "adjusted"])
     ap.add_argument("--out", default="out", help="folder for the run files, relative to the repo root")
+    ap.add_argument(
+        "--scheduled", action="store_true", help="set by cron/Task Scheduler: obey scheduled_runs_enabled"
+    )
     a = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 
     try:
         cfg = load_config(run_date=a.date, trend_basis=a.trend_basis)
         with make_session_factory()() as session:
+            needed = [switches.PLANNER] + ([switches.SCHEDULED_RUNS] if a.scheduled else [])
+            off = [s for s in needed if not switches.is_enabled(session, s)]
+            if off:
+                raise PlannerPaused(f"{', '.join(off)} OFF (or unreadable): no ingest, no run")
             if a.ingest_dir:
                 result = ingest_folder(session, a.ingest_dir, cfg, a.date)
                 for i in result.issues:
@@ -232,10 +252,15 @@ def main(argv=None):
     except RunLocked as e:
         log.error("%s", e)
         return 2
+    except PlannerPaused as e:
+        log.warning("%s", e)
+        return 4
     except Exception:
         log.exception("planning run for %s failed", a.date)
         return 3
-    log.info("run %s for %s completed: %s", run.id, run.run_date, json.dumps(run.summary))
+    log.info("run %s for %s %s: %s", run.id, run.run_date, run.status, json.dumps(run.summary))
+    for reason in run.hold_reasons:
+        log.warning("run HELD: %s", reason)
     for w in (c for c in run.data_checks if c["level"] == "warn"):
         log.warning("data check: %s", w["message"])
     return 0

@@ -35,6 +35,20 @@ class DataFreshness(_Strict):
     max_sales_age_days: int = Field(ge=0)
 
 
+class Schedule(_Strict):
+    run_days: list[Literal["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]]
+    deadline: str = Field(pattern=r"^\d{2}:\d{2}$")  # dead-man alert if the run has not completed by then
+
+
+class Tripwires(_Strict):
+    min_runs_for_ratio_checks: int = Field(ge=1)
+    po_units_vs_recent_avg_max: float = Field(gt=0)
+    decision_change_max_share: float = Field(gt=0, le=1)
+    override_rate_warn_share: float = Field(gt=0, le=1)
+    ai_grounding_failures_per_day: int = Field(ge=1)
+    zoho_consecutive_failures: int = Field(ge=1)
+
+
 class RulesConfig(_Strict):
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
     note: str = Field("", alias="_note")
@@ -52,6 +66,10 @@ class RulesConfig(_Strict):
     data_freshness: DataFreshness
     home_regions: list[str]
     decision_reasons: list[str] = Field(min_length=1)  # required for every edit and reject
+    switch_admins: list[str] = Field(min_length=1)
+    alert_recipients: list[str]
+    schedule: Schedule
+    tripwires: Tripwires
 
 
 def load_config(path=None, run_date=None, trend_basis=None):

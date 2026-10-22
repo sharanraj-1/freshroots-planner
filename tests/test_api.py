@@ -10,6 +10,7 @@ from sqlalchemy import select
 from planner import models as m
 from planner.api import deps
 from planner.api.main import app
+from planner.control.switches import install_defaults
 from planner.db import make_engine, make_session_factory
 from planner.ingest.load import ingest_folder
 from planner.jobs.run import plan
@@ -25,6 +26,7 @@ def factory(tmp_path, cfg):
     Base.metadata.create_all(engine)
     factory = make_session_factory(engine)
     with factory() as s:
+        install_defaults(s)
         ingest_folder(s, SEED, cfg, RUN_DATE)
         plan(s, RUN_DATE, cfg)
     return factory

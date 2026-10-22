@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from planner.config import ROOT, load_config
+from planner.control.switches import install_defaults
 from planner.db import make_engine, make_session_factory
 from planner.models import Base
 
@@ -27,6 +28,7 @@ def engine():
 @pytest.fixture
 def session(engine):
     with make_session_factory(engine)() as s:
+        install_defaults(s)
         yield s
 
 

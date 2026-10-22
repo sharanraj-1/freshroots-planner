@@ -106,7 +106,7 @@ class PlanningRun(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     run_date: Mapped[date] = mapped_column(unique=True)
     trend_basis: Mapped[str]
-    status: Mapped[str]  # completed | failed
+    status: Mapped[str]  # running | completed | held | failed
     started_at: Mapped[datetime]
     finished_at: Mapped[datetime | None]
     festival_month: Mapped[bool | None]
@@ -114,6 +114,11 @@ class PlanningRun(Base):
     config: Mapped[dict] = mapped_column(JSON)
     data_checks: Mapped[list] = mapped_column(JSON, default=list)
     error: Mapped[str | None]
+    tripwires: Mapped[list] = mapped_column(JSON, default=list)  # result of each check after the run
+    hold_reasons: Mapped[list] = mapped_column(JSON, default=list)
+    released_by: Mapped[str | None]
+    released_at: Mapped[datetime | None]
+    release_reason: Mapped[str | None]
     recommendations: Mapped[list["Recommendation"]] = relationship(
         back_populates="run", cascade="all, delete-orphan", order_by="Recommendation.sku_id"
     )
@@ -166,3 +171,52 @@ class AiBrief(Base):
     grounding: Mapped[dict | None] = mapped_column(JSON)
     error: Mapped[str | None]
     created_at: Mapped[datetime]
+
+
+# ---------- control ----------
+class ControlSwitch(Base):
+    """Kill switches. A missing row, or any failure to read one, means OFF."""
+
+    __tablename__ = "control_switch"
+    name: Mapped[str] = mapped_column(String(40), primary_key=True)
+    enabled: Mapped[bool]
+    updated_at: Mapped[datetime]
+    updated_by: Mapped[str]
+    reason: Mapped[str]
+
+
+class SwitchAudit(Base):
+    __tablename__ = "switch_audit"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(40), index=True)
+    old_value: Mapped[bool | None]
+    new_value: Mapped[bool]
+    changed_by: Mapped[str]
+    changed_at: Mapped[datetime]
+    reason: Mapped[str]
+    source: Mapped[str]  # cli | api | tripwire | install
+
+
+class Alert(Base):
+    __tablename__ = "alert"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kind: Mapped[str] = mapped_column(String(40), index=True)  # tripwire | deadman | pre_po | ...
+    severity: Mapped[str]  # info | warning | critical
+    message: Mapped[str]
+    run_id: Mapped[int | None] = mapped_column(ForeignKey("planning_run.id", ondelete="SET NULL"))
+    key: Mapped[str | None] = mapped_column(String(80), index=True)  # de-duplicates repeat alerts
+    created_at: Mapped[datetime]
+    emailed: Mapped[bool] = mapped_column(default=False)
+    email_error: Mapped[str | None]
+    resolved_at: Mapped[datetime | None]
+
+
+class IntegrationCall(Base):
+    """One outbound call to Zoho or the LLM; the tripwires read the latest outcomes."""
+
+    __tablename__ = "integration_call"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    system: Mapped[str] = mapped_column(String(20), index=True)  # zoho | llm
+    ok: Mapped[bool]
+    called_at: Mapped[datetime]
+    detail: Mapped[str | None]

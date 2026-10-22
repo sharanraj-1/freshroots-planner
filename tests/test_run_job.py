@@ -6,7 +6,8 @@ import pytest
 from sqlalchemy import func, select
 
 from planner import models as m
-from planner.db import make_engine
+from planner.control.switches import install_defaults
+from planner.db import make_engine, make_session_factory
 from planner.ingest.load import ingest_folder
 from planner.jobs import run as run_job
 from planner.jobs.run import DataError, RunLocked, plan
@@ -97,7 +98,10 @@ def test_only_complete_weeks_and_past_inventory_are_used(loaded, cfg):
 @pytest.fixture
 def db_url(tmp_path, monkeypatch):
     url = f"sqlite:///{(tmp_path / 'p.db').as_posix()}"
-    Base.metadata.create_all(make_engine(url))
+    engine = make_engine(url)
+    Base.metadata.create_all(engine)
+    with make_session_factory(engine)() as s:
+        install_defaults(s)
     monkeypatch.setenv("DATABASE_URL", url)
     return url
 
@@ -123,3 +127,18 @@ def test_cli_unexpected_failure(db_url, monkeypatch):
 
     monkeypatch.setattr(run_job, "plan", boom)
     assert run_job.main(["--date", RUN_DATE]) == 3
+
+
+def test_cli_respects_kill_switches(db_url, tmp_path):
+    from planner.config import load_config
+    from planner.control import switches
+    from planner.db import make_session_factory
+
+    out = ["--out", str(tmp_path / "out"), "--ingest-dir", str(SEED)]
+    with make_session_factory()() as s:
+        switches.flip(s, switches.SCHEDULED_RUNS, False, "year-end freeze", "raghav", load_config())
+    assert run_job.main(["--date", RUN_DATE, "--scheduled", *out]) == 4
+    assert run_job.main(["--date", RUN_DATE, *out]) == 0  # a manual run is still allowed
+    with make_session_factory()() as s:
+        switches.flip(s, switches.PLANNER, False, "planner paused", "raghav", load_config())
+    assert run_job.main(["--date", RUN_DATE, *out]) == 4

@@ -30,5 +30,16 @@
     "Data looks wrong",
     "Shelf-life risk",
     "Other"
-  ]
+  ],
+  "switch_admins": ["raghav"],
+  "alert_recipients": [],
+  "schedule": {"run_days": ["Mon", "Thu"], "deadline": "07:00"},
+  "tripwires": {
+    "min_runs_for_ratio_checks": 4,
+    "po_units_vs_recent_avg_max": 2.0,
+    "decision_change_max_share": 0.30,
+    "override_rate_warn_share": 0.40,
+    "ai_grounding_failures_per_day": 2,
+    "zoho_consecutive_failures": 3
+  }
 }

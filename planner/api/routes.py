@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from planner import models as m
 from planner.api.deps import USER_HEADER, current_user, get_config, get_session
 from planner.api.schemas import DecisionIn, DecisionOut, RecommendationOut, RunDetail, RunOut
+from planner.control import switches
 from planner.integrations.zoho_csv import HEADER as ZOHO_HEADER
 
 router = APIRouter()
@@ -93,6 +94,10 @@ def decide(
     rec = session.get(m.Recommendation, rec_id)
     if rec is None:
         raise HTTPException(404, f"recommendation {rec_id} not found")
+    if not switches.is_enabled(session, switches.PLANNER):
+        raise HTTPException(409, "the planner is paused: use the manual process")
+    if rec.run.status != "completed":
+        raise HTTPException(409, f"run {rec.run_id} is {rec.run.status}; decisions are not allowed")
     current = _current(rec)
     if current and current.zoho_po_id:
         raise HTTPException(409, f"already in Zoho as draft PO {current.zoho_po_id}; change it there")
@@ -149,6 +154,8 @@ def _names_and_vendors(session):
 def export_zoho(run_id: int, session: Session = Depends(get_session)):
     """Approved and edited lines with qty > 0, status Draft. Never a released order."""
     run = _run_or_404(session, run_id)
+    if run.status != "completed":
+        raise HTTPException(409, f"run {run_id} is {run.status}; no PO export")
     names, vendors = _names_and_vendors(session)
     rows = []
     for rec in run.recommendations:

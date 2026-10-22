@@ -10,6 +10,7 @@ import sys
 from datetime import date
 
 from planner.config import load_config
+from planner.control import switches
 from planner.db import make_session_factory
 from planner.ingest.load import ingest_folder
 
@@ -22,6 +23,9 @@ def main(argv=None):
     if not a.dir:
         ap.error("no --dir given and SAP_INBOUND_DIR is not set")
     with make_session_factory()() as session:
+        if not switches.is_enabled(session, switches.PLANNER):
+            print("planner_enabled is OFF (or unreadable): nothing loaded", file=sys.stderr)
+            return 4
         result = ingest_folder(session, a.dir, load_config(), a.date)
     for i in result.issues:
         print(

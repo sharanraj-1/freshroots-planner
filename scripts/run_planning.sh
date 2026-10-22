@@ -3,4 +3,4 @@
 set -e
 cd "$(dirname "$0")/.."
 [ -f .env ] && set -a && . ./.env && set +a
-exec .venv/bin/python -m planner.jobs.run >> logs/run.log 2>&1
+exec .venv/bin/python -m planner.jobs.run --scheduled >> logs/run.log 2>&1
