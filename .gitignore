@@ -8,3 +8,7 @@ out_*/
 .env
 planner.db
 .claude/
+inbound/*
+!inbound/.gitkeep
+logs/*
+!logs/.gitkeep

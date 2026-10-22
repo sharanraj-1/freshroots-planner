@@ -1,0 +1,57 @@
+# docker compose up -d   → workbench on http://localhost:8000
+# Secrets come from .env next to this file (git-ignored). See .env.example.
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: planner
+      POSTGRES_USER: planner
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U planner -d planner"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://planner:${POSTGRES_PASSWORD}@postgres:5432/planner
+      SAP_INBOUND_DIR: /data/inbound
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./inbound:/data/inbound:ro
+      - logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/app/.venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  scheduler:
+    build: .
+    restart: unless-stopped
+    command: ["docker/scheduler.sh"]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://planner:${POSTGRES_PASSWORD}@postgres:5432/planner
+      SAP_INBOUND_DIR: /data/inbound
+    volumes:
+      - ./inbound:/data/inbound:ro
+      - logs:/app/logs
+    depends_on:
+      api:
+        condition: service_healthy   # the API container runs the migrations first
+
+volumes:
+  pgdata:
+  logs:

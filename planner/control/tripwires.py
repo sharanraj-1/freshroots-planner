@@ -136,6 +136,39 @@ def release(session, run, reason, user, cfg):
     return run
 
 
+def rollback(session, run, reason, user, cfg):
+    """Take a run out of use. It is kept for audit; a new run for the same date is then allowed.
+
+    Zoho drafts already created from it are not touched (the planner never deletes in Zoho);
+    they are returned so a person can delete them in Zoho.
+    """
+    if user not in cfg["switch_admins"]:
+        raise switches.NotAdmin(f"'{user}' is not in switch_admins")
+    if not (reason or "").strip():
+        raise switches.SwitchError("a reason is required to roll back a run")
+    if run.status == "rolled_back":
+        raise switches.SwitchError(f"run {run.id} is already rolled back")
+    drafts = sorted({d.zoho_po_id for r in run.recommendations for d in r.decisions if d.zoho_po_id})
+    run.hold_reasons = [*run.hold_reasons, f"rolled back by {user}: {reason}"]
+    run.status, run.released_by, run.released_at, run.release_reason = (
+        "rolled_back",
+        user,
+        datetime.now(),
+        reason,
+    )
+    session.commit()
+    raise_alert(
+        session,
+        cfg,
+        "rollback",
+        f"Run {run.id} for {run.run_date} rolled back by {user}: {reason}."
+        + (f" Delete these Zoho drafts by hand: {', '.join(drafts)}." if drafts else ""),
+        severity="warning",
+        run_id=run.id,
+    )
+    return drafts
+
+
 def _trip_switch(session, cfg, name, why):
     if switches.is_enabled(session, name):
         switches.flip(session, name, False, why, "tripwire", cfg, source="tripwire")

@@ -115,9 +115,9 @@ class IngestReport(Base):
 class PlanningRun(Base):
     __tablename__ = "planning_run"
     id: Mapped[int] = mapped_column(primary_key=True)
-    run_date: Mapped[date] = mapped_column(unique=True)
+    run_date: Mapped[date] = mapped_column(index=True)
     trend_basis: Mapped[str]
-    status: Mapped[str]  # running | completed | held | failed
+    status: Mapped[str]  # running | completed | held | failed | rolled_back
     started_at: Mapped[datetime]
     finished_at: Mapped[datetime | None]
     festival_month: Mapped[bool | None]

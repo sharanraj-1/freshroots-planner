@@ -106,3 +106,23 @@ def resolve_alert(alert_id: int, user: str = Depends(current_user), session: Ses
     a.message += f" [resolved by {user}]"
     session.commit()
     return {"id": a.id, "resolved_at": a.resolved_at}
+
+
+@router.get("/health")
+def health(session: Session = Depends(get_session), cfg=Depends(get_config)):
+    """Liveness, when the last run finished, and whether the data is fresh."""
+    from fastapi.responses import JSONResponse
+    from sqlalchemy import text
+
+    try:
+        session.execute(text("SELECT 1"))
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse({"ok": False, "database": f"unreachable: {type(e).__name__}"}, status_code=503)
+    s = status(session, cfg)
+    return {
+        "ok": True,
+        "database": "ok",
+        "planner_enabled": s["planner_enabled"],
+        "last_run": s["last_run"],
+        "data_freshness": s["data_freshness"],
+    }

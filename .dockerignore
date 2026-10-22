@@ -1,0 +1,15 @@
+.git
+.venv
+.env
+.claude
+*.db
+out
+out_*
+logs
+inbound
+**/__pycache__
+.pytest_cache
+.ruff_cache
+*.egg-info
+tests
+docs

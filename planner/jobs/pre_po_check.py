@@ -27,6 +27,7 @@ from planner.config import load_config
 from planner.control import switches
 from planner.control.alerts import raise_alert
 from planner.db import make_session_factory
+from planner.logs import setup_logging
 
 log = logging.getLogger("planner.pre_po")
 
@@ -136,7 +137,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="Daily pre-PO demand check")
     ap.add_argument("--date", default=date.today().isoformat())
     a = ap.parse_args(argv)
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    setup_logging()
     with make_session_factory()() as session:
         try:
             checked = run_daily(session, load_config(), date.fromisoformat(a.date))

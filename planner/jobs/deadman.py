@@ -16,6 +16,7 @@ from planner.config import load_config
 from planner.control import switches
 from planner.control.alerts import raise_alert
 from planner.db import make_session_factory
+from planner.logs import setup_logging
 
 log = logging.getLogger("planner.deadman")
 
@@ -60,7 +61,7 @@ def check(session, cfg, now):
 
 
 def main():
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    setup_logging()
     with make_session_factory()() as session:
         alert = check(session, load_config(), datetime.now())
     return 1 if alert else 0

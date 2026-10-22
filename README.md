@@ -23,7 +23,16 @@ recommended), `2` the run for that date already has planner decisions or is held
 replaced, `3` any other failure, `4` paused by a kill switch.
 Re-running a date with no planner decisions replaces that run.
 
-## Scheduling: Monday and Thursday at 06:00
+## Docker
+```bash
+cp .env.example .env     # set POSTGRES_PASSWORD and the LLM / Zoho settings
+docker compose up -d --build
+```
+Three services: `postgres`, `api` (migrates, then serves the API and workbench on port 8000),
+and `scheduler` (cron: run Monday/Thursday 06:00, dead-man check 07:00, daily pre-PO check 06:30).
+Health: `GET /health`. Operations: [docs/RUNBOOK.md](docs/RUNBOOK.md). KPIs: [docs/KPIS.md](docs/KPIS.md).
+
+## Scheduling without Docker: Monday and Thursday at 06:00
 
 Both wrappers load `.env`, ingest `SAP_INBOUND_DIR`, plan today's date and append to `logs/run.log`.
 The SAP export must land in `SAP_INBOUND_DIR` before 06:00.

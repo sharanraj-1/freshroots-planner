@@ -293,3 +293,35 @@ def test_migrations_match_models(tmp_path):
         command.upgrade(alembic_cfg, "head")
     with engine.connect() as conn:
         assert compare_metadata(MigrationContext.configure(conn), Base.metadata) == []
+
+
+def test_migrated_database_allows_a_rerun_after_rollback(tmp_path):
+    """The 3rd migration drops the unique constraint on planning_run.run_date (SQLite cannot show this
+    to compare_metadata, so it is checked by inserting two runs for the same date)."""
+    from datetime import date, datetime
+
+    from alembic import command
+    from alembic.config import Config
+
+    from planner.config import ROOT
+    from planner.db import make_engine, make_session_factory
+
+    engine = make_engine(f"sqlite:///{tmp_path / 'r.db'}")
+    alembic_cfg = Config(str(ROOT / "alembic.ini"))
+    with engine.begin() as conn:
+        alembic_cfg.attributes["connection"] = conn
+        command.upgrade(alembic_cfg, "head")
+    with make_session_factory(engine)() as s:
+        for status in ("rolled_back", "completed"):
+            s.add(
+                m.PlanningRun(
+                    run_date=date(2026, 10, 19),
+                    trend_basis="unadjusted",
+                    status=status,
+                    started_at=datetime.now(),
+                    config={},
+                    data_checks=[],
+                )
+            )
+        s.commit()
+        assert s.scalar(select(func.count()).select_from(m.PlanningRun)) == 2

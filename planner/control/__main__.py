@@ -4,6 +4,7 @@
   python -m planner.control off <switch|all> --reason "..." [--user NAME]
   python -m planner.control on  <switch>     --reason "..." [--user NAME]
   python -m planner.control release <run_id> --reason "..." [--user NAME]
+  python -m planner.control rollback <run_id> --reason "..." [--user NAME]
 
 --user defaults to $PLANNER_USER, then the login name; it must be in config `switch_admins`.
 """
@@ -25,7 +26,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(prog="python -m planner.control", description="Planner kill switches")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("status")
-    for name in ("off", "on", "release"):
+    for name in ("off", "on", "release", "rollback"):
         p = sub.add_parser(name)
         p.add_argument("target", help="switch name, 'all' (off only), or a run id (release)")
         p.add_argument("--reason", required=True)
@@ -38,13 +39,19 @@ def main(argv=None):
             if a.cmd == "status":
                 print(json.dumps(status(session, cfg), indent=2, default=str))
                 return 0
-            if a.cmd == "release":
+            if a.cmd in ("release", "rollback"):
                 run = session.get(m.PlanningRun, int(a.target))
                 if run is None:
                     print(f"run {a.target} not found", file=sys.stderr)
                     return 1
-                tripwires.release(session, run, a.reason, a.user, cfg)
-                print(f"run {run.id} released by {a.user}")
+                if a.cmd == "release":
+                    tripwires.release(session, run, a.reason, a.user, cfg)
+                    print(f"run {run.id} released by {a.user}")
+                else:
+                    drafts = tripwires.rollback(session, run, a.reason, a.user, cfg)
+                    print(f"run {run.id} rolled back by {a.user}")
+                    if drafts:
+                        print("delete these Zoho drafts by hand:", ", ".join(drafts))
                 return 0
             if a.target == "all":
                 if a.cmd != "off":

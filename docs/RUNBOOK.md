@@ -1,5 +1,61 @@
 # Runbook – Freshroots demand planner
 
+Who: Freshroots IT (3 people) and Raghav. Times are IST.
+
+## Daily checks (5 minutes, before 09:00)
+1. Open `http://<server>:8000/health`. `ok: true`; `data_freshness.fresh: true` on run days.
+2. Open the workbench. The status panel shows every switch as expected, with no red alerts.
+   On Monday and Thursday the last run is today's and is `completed` (or `held`, see below).
+3. Check `logs/run.log` and `logs/pre_po.log` (Docker: `docker compose logs scheduler --since 24h`)
+   for `"level": "ERROR"` or `"CRITICAL"`.
+4. On run days, confirm Raghav has started reviewing. The KPI "cycle time" (docs/KPIS.md) shows
+   how long decisions took.
+
+## When the SAP export fails or is late
+Symptoms: the run exits with code 1 and the log says `Run stopped - data errors`, or the
+dead-man alert fires at 07:00, or `/health` shows stale data.
+1. `python -m planner.control status` shows the last run's error and the data freshness.
+   The `ingest_report` table lists every file in the batch: rows, checksum, errors.
+2. **File missing or late.** Ask the SAP team to re-send to `SAP_INBOUND_DIR`, then run it by hand:
+   `python -m planner.jobs.run --date <today> --ingest-dir <dir>` (Docker:
+   `docker compose exec scheduler /app/scripts/run_planning.sh`).
+3. **File rejected** (header mismatch, negative or duplicate rows, unknown SKU, stale stock).
+   Nothing was loaded. Send the exact message to the SAP team; do not edit the export by hand.
+   docs/DATA_CONTRACTS.md lists every rule.
+4. If it cannot be fixed by 11:00 on a run day, use the manual process below for this cycle.
+
+## Changing a threshold
+Every business threshold is in `config.json`. It is Raghav's rule, so a change needs his sign-off.
+1. Raghav agrees the change in writing (email or ticket). Record it in `docs/OPEN_QUESTIONS.md`
+   if it settles a question there.
+2. Edit `config.json` in git, in one commit whose message quotes the sign-off.
+3. `pytest -q`. The golden tests pin the signed-off results, so a deliberate rule change also
+   updates `tests/golden/` and `CLAUDE.md` in the same commit, after review.
+4. Deploy (`git pull`; Docker: `docker compose up -d --build`). The next run stores the config it
+   used in `planning_run.config`, so every run shows which rules applied.
+A typo or an unknown key in `config.json` stops every job with a validation error (fail closed).
+
+## Rolling back a run
+Use this when a run went out with bad data or a bad rule, and decisions were already made on it.
+1. Pause: `python -m planner.control off planner_enabled --reason "rolling back run <id>"`.
+2. `python -m planner.control rollback <run_id> --reason "..."`. The run is kept for audit as
+   `rolled_back`; nobody can act on it or export it.
+3. If the command lists Zoho draft POs, delete those drafts in Zoho by hand. The planner never
+   deletes anything in Zoho.
+4. Fix the cause (data or config), then resume: `python -m planner.control on planner_enabled --reason "..."`.
+5. Re-run the same date: `python -m planner.jobs.run --date <run date> --ingest-dir <dir>`.
+A run with no decisions does not need a rollback: running the date again replaces it.
+
+## Deployment (Docker)
+```bash
+cp .env.example .env        # set POSTGRES_PASSWORD, LLM and Zoho settings
+docker compose up -d --build
+docker compose ps           # api healthy, scheduler running
+```
+The API container runs `alembic upgrade head` on start. The scheduler container runs the cron
+jobs in `docker/crontab`. SAP exports go in `./inbound`. Back up the `pgdata` volume daily, for
+example with `docker compose exec postgres pg_dump -U planner planner > backup.sql`.
+
 ## Kill switches
 
 | Switch | When OFF |

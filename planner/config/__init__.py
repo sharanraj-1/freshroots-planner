@@ -19,7 +19,7 @@ def load_dotenv(path=ROOT / ".env"):
     if os.environ.get("PLANNER_SKIP_DOTENV") == "1" or not Path(path).exists():
         return
     for line in Path(path).read_text(encoding="utf-8").splitlines():
-        key, sep, value = line.partition("=")
+        key, sep, value = line.removeprefix("export ").partition("=")
         if sep and key.strip() and not key.lstrip().startswith("#"):
             os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
 

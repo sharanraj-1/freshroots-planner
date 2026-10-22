@@ -1,0 +1,7 @@
+# Times are Asia/Kolkata (TZ in the image).
+# Planning run, Monday and Thursday 06:00 (obeys scheduled_runs_enabled).
+0 6 * * 1,4 /app/scripts/run_planning.sh
+# Dead-man check at the 07:00 deadline on run days.
+0 7 * * 1,4 /app/scripts/deadman.sh
+# Daily: load the SAP exports and check big draft POs for demand drops.
+30 6 * * * /app/scripts/pre_po_check.sh

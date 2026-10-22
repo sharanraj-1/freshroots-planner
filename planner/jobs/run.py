@@ -30,6 +30,7 @@ from planner.db import make_engine, make_session_factory
 from planner.ingest.load import dataset_for, ingest_folder
 from planner.ingest.validate import errors, validate
 from planner.integrations.zoho_csv import write_draft_po_csv
+from planner.logs import setup_logging
 from planner.review.queue import build_review_queue, needs_review
 from planner.rules.engine import evaluate
 
@@ -113,7 +114,9 @@ def summarise(rows):
 
 def _clear_previous(session, run_date):
     """Delete an earlier run for run_date, unless a planner has already decided on it."""
-    previous = session.scalar(select(m.PlanningRun).where(m.PlanningRun.run_date == run_date))
+    previous = session.scalar(
+        select(m.PlanningRun).where(m.PlanningRun.run_date == run_date, m.PlanningRun.status != "rolled_back")
+    )
     if previous is None:
         return
     if previous.status == "held":
@@ -224,7 +227,7 @@ def main(argv=None):
         "--scheduled", action="store_true", help="set by cron/Task Scheduler: obey scheduled_runs_enabled"
     )
     a = ap.parse_args(argv)
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    setup_logging()
 
     try:
         cfg = load_config(run_date=a.date, trend_basis=a.trend_basis)
