@@ -83,8 +83,8 @@ Add API tests for every endpoint, including invalid qty and missing reason.
 
 ```
 Build planner/review/assistant.py:
-- uses exception_agent_prompt.md as the prompt, Anthropic Messages API,
-  model from PLANNER_LLM_MODEL, key from ANTHROPIC_API_KEY
+- uses exception_agent_prompt.md as the prompt, Google Gemini API (JSON response mode),
+  model from PLANNER_LLM_MODEL, key from GEMINI_API_KEY
 - input: the review payload for one recommendation (same fields as review_queue.json)
 - validates the JSON reply with pydantic; on invalid JSON retry once, then store a failure
 - grounding check: every number in the brief must appear in the input or be derivable

@@ -5,11 +5,14 @@ It replaces a manual monthly Excel process run by the Senior Demand Planner (Rag
 The system **recommends**; humans **decide**. It never places an order on its own.
 
 ## What exists today (prototype, keep it working)
-- `engine.py` – rules engine on seed CSVs in `data/`. Source of truth for the business logic.
+- `planner/rules/engine.py` – pure rule functions. Source of truth for the business logic.
+- `planner/ingest/sap_files.py` – loads seed CSVs from `data/seed/` and validates them.
+- `planner/jobs/run.py` – one planning run; writes `out/` (recommendations, review queue, run log).
+- `planner/integrations/zoho_csv.py` – Zoho draft-PO import CSV.
+- `planner/review/queue.py` + `exception_agent_prompt.md` – review payloads and the AI assistant prompt.
+- `planner/web/build.py` + `workbench_template.html` – planner review screen (static, data embedded).
 - `config.json` – every business threshold. No thresholds hard-coded anywhere else.
-- `test_engine.py` – regression tests. Must stay green.
-- `build_workbench.py` + `workbench_template.html` – planner review screen (static, data embedded).
-- `exception_agent_prompt.md` – prompt for the AI exception assistant.
+- `tests/` – unit tests and golden tests. `tests/golden/` holds the prototype's exact outputs. Must stay green.
 
 ## Business rules (from Raghav, signed off – do not change without a config change)
 1. Baseline = mean of last 12 complete weeks. Trend = mean of last 4.
@@ -41,7 +44,10 @@ REORDER SKU001=750, SKU003=300, SKU004=150, SKU011=500, SKU013=120; PAUSE SKU006
 - Frontend: evolve `workbench_template.html` (vanilla JS, no build step) to read from the API.
 - Scheduling: one cron/Task Scheduler entry calling `python -m planner.jobs.run`.
 - Docker Compose for deployment.
-- LLM: Anthropic Messages API, model from env `PLANNER_LLM_MODEL`. Check current docs for model names.
+- LLM: Google Gemini API (not Anthropic), key from env `GEMINI_API_KEY`, model from env
+  `PLANNER_LLM_MODEL`. Check current Gemini docs for model names. Any other external API:
+  use a free tier, and ask the owner before adding a new key.
+- Frontend design work: use the `design-taste-frontend` (tasteskill) skill.
 - Zoho Inventory: CSV export first; API integration behind `ZOHO_API_ENABLED` flag.
   Verify every endpoint and field against current Zoho Inventory API docs. Do not guess.
 
@@ -61,7 +67,9 @@ data/seed/       the seed CSVs
 ```
 
 ## Commands
-- `pytest -q` – all tests
+- `pip install -e ".[dev]"` – install into the venv
+- `pytest -q` – all tests; `ruff format . && ruff check .` – lint
+- `python -m planner.web.build` – static workbench at `out/workbench.html`
 - `python -m planner.jobs.run --date 2026-10-19` – one planning run
 - `uvicorn planner.api.main:app --reload` – local API + workbench
 
