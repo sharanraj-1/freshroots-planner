@@ -47,7 +47,7 @@ schtasks /Create /TN "Freshroots planning run" /SC WEEKLY /D MON,THU /ST 06:00 /
 ```
 and the dead-man check:
 ```
-schtasks /Create /TN "Freshroots dead-man check" /SC WEEKLY /D MON,THU /ST 07:00 /RU SYSTEM /TR "\"C:reshroots_planner\scripts\deadman.cmd\""
+schtasks /Create /TN "Freshroots dead-man check" /SC WEEKLY /D MON,THU /ST 07:00 /RU SYSTEM /TR "\"C:\freshroots_planner\scripts\deadman.cmd\""
 ```
 Check it with `schtasks /Query /TN "Freshroots planning run" /V`, and run it once now with
 `schtasks /Run /TN "Freshroots planning run"`. A non-zero "Last Result" is the exit code above.
