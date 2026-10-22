@@ -91,3 +91,16 @@ Per SKU, `supplier_master.csv` supplies `Zoho_Vendor_ID` (required to send), `Zo
 7. Break `ZOHO_CLIENT_SECRET` and send again. Expect 3 failures, `zoho_api_enabled` OFF, an
    alert, and the lines in the CSV export.
 8. Confirm point 1 above (PO numbering). Record the result here.
+
+## Status (2026-10-22)
+- **Self Client created** in the India API console (api-console.zoho.in), scopes
+  `ZohoInventory.purchaseorders.CREATE`, `purchaseorders.READ`, `items.READ`, `contacts.READ`,
+  `settings.READ`. No UPDATE or DELETE scope.
+- **Refresh token issued and stored** in the local `.env` (`ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET`,
+  `ZOHO_REFRESH_TOKEN`, `ZOHO_DC=in`). Token refresh tested: OK.
+- **Blocked on:** the Zoho account has **no Zoho Inventory organisation** yet
+  (`GET /organizations` returns none; inventory.zoho.in opens the organisation setup form).
+- **To finish:** create the organisation at https://inventory.zoho.in, add vendors and items
+  (item SKUs = planner SKU_IDs), then run `python -m planner.integrations.zoho_setup`. It saves
+  `ZOHO_ORGANIZATION_ID` and drafts `out/zoho/supplier_master_draft.csv`. Then follow the
+  checklist above from step 3. `ZOHO_API_ENABLED` stays `false` until then.

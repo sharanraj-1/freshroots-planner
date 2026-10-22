@@ -83,6 +83,7 @@ data/seed/       the seed CSVs
 - `python -m planner.jobs.run --date 2026-10-19 --ingest-dir data/seed` – ingest + one planning run
 - `python -m planner.control status|off|on|release|rollback` – kill switches, held runs, rollback
 - `python -m planner.jobs.pre_po_check`, `python -m planner.jobs.deadman`, `python -m planner.jobs.shadow_report`
+- `python -m planner.integrations.zoho_setup` – finish the Zoho connection (org id, item mapping)
 - `RUN_LIVE_EVAL=1 python -m tests.ai_eval.run_eval` – live AI eval (costs a few cents)
 - `docker compose up -d --build` – postgres + api + scheduler
 - `uvicorn planner.api.main:app --reload` – local API + workbench
