@@ -10,7 +10,9 @@ from pathlib import Path
 
 import pytest
 
-from planner.jobs.run import run
+from planner.config import load_config
+from planner.jobs.run import plan_folder
+from tests.conftest import SEED
 
 GOLDEN = Path(__file__).parent / "golden"
 REORDER = {"SKU001": 750, "SKU003": 300, "SKU004": 150, "SKU011": 500, "SKU013": 120}
@@ -23,8 +25,9 @@ CASES = {
 @pytest.fixture(scope="module", params=CASES)
 def result(request, tmp_path_factory):
     out = tmp_path_factory.mktemp(request.param)
-    rows, summary, _, _ = run(run_date="2026-10-19", trend_basis=request.param, outdir=out)
-    return request.param, rows, summary, out
+    cfg = load_config(run_date="2026-10-19", trend_basis=request.param)
+    run, rows = plan_folder(SEED, cfg, out)
+    return request.param, rows, run.summary, out
 
 
 def test_decisions(result):

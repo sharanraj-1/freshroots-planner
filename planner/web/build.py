@@ -6,8 +6,10 @@ Usage:  python -m planner.web.build   (writes out/workbench.html)
 import json
 from pathlib import Path
 
-from planner.config import ROOT
-from planner.jobs.run import run
+from planner.config import ROOT, load_config
+from planner.jobs.run import plan_folder
+
+SEED_DIR = ROOT / "data" / "seed"
 
 HERE = Path(__file__).resolve().parent
 CHECKS = [
@@ -26,10 +28,9 @@ CHECKS = [
 def build(path=ROOT / "out" / "workbench.html"):
     runs = {}
     for basis in ("unadjusted", "adjusted"):
-        rows, summary, _, cfg = run(
-            trend_basis=basis, outdir="out" if basis == "unadjusted" else "out_adjusted"
-        )
-        runs[basis] = {"rows": rows, "summary": summary}
+        cfg = load_config(trend_basis=basis)
+        run, rows = plan_folder(SEED_DIR, cfg, ROOT / ("out" if basis == "unadjusted" else "out_adjusted"))
+        runs[basis] = {"rows": rows, "summary": run.summary}
     data = {
         "run_date": cfg["run_date"],
         "runs": runs,

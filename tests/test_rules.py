@@ -1,7 +1,9 @@
 """Unit tests carried over from the prototype's test_engine.py. Each case pins one documented rule."""
 
-from planner.jobs.run import run
+from planner.config import load_config
+from planner.jobs.run import plan_folder
 from planner.rules.engine import decide
+from tests.conftest import RUN_DATE, SEED
 
 
 def test_decide():
@@ -12,7 +14,8 @@ def test_decide():
 
 
 def test_seed_run(tmp_path):
-    rows, s, _, _ = run(outdir=tmp_path)
+    run, rows = plan_folder(SEED, load_config(run_date=RUN_DATE), tmp_path)
+    s = run.summary
     by = {r["sku_id"]: r for r in rows}
     assert by["SKU001"]["high_demand"] and by["SKU001"]["recommended_qty"] == 750  # 500 x 1.5
     assert by["SKU004"]["decision"] == "REORDER"  # perishable, 1.8 wks

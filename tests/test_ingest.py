@@ -8,7 +8,7 @@ from sqlalchemy import func, select
 from planner import models as m
 from planner.config import load_config
 from planner.ingest.load import dataset_for, ingest_folder
-from planner.jobs.run import DataError, run
+from planner.jobs.run import DataError, plan_folder
 from planner.rules.engine import evaluate
 from tests.conftest import RUN_DATE, write_csv
 
@@ -209,7 +209,7 @@ def test_bad_data_stops_load_and_run(session, seed_dir, edit, desc, file, fn, as
     assert count(session, m.Sku) == 0 and count(session, m.WeeklySales) == 0  # nothing loaded
     assert {r.status for r in session.scalars(select(m.IngestReport))} == {"rejected"}
     with pytest.raises(DataError, match="Run stopped"):
-        run(run_date=as_of, outdir=tmp_path / "out", data_dir=seed_dir)
+        plan_folder(seed_dir, cfg)
 
 
 def test_missing_required_file(session, seed_dir, cfg):
