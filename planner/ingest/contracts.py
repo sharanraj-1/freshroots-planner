@@ -79,6 +79,12 @@ class SupplierRow(_Row):
     unit_cost_inr: float | None = Field(None, alias="Unit_Cost_INR", ge=0)
 
 
+class DailyOrderRow(_Row):
+    order_date: date = Field(alias="Date")
+    sku_id: str = Field(alias="SKU_ID")
+    units_ordered: int = Field(alias="Units_Ordered", ge=0)
+
+
 # file name -> (row contract, required)
 FILES = {
     "sku_master.csv": (SkuRow, True),
@@ -88,6 +94,7 @@ FILES = {
     "current_inventory.csv": (InventoryRow, True),
     "open_po.csv": (OpenPoRow, False),
     "supplier_master.csv": (SupplierRow, False),
+    "daily_orders.csv": (DailyOrderRow, False),
 }
 
 
@@ -110,6 +117,7 @@ class Dataset:
     inventory: list[InventoryRow]
     open_pos: list[OpenPoRow] | None = None
     suppliers: list[SupplierRow] | None = None
+    daily_orders: list[DailyOrderRow] | None = None
 
     def sku_map(self):
         return {s.sku_id: s for s in self.skus}

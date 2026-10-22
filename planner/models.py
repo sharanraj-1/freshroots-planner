@@ -59,6 +59,17 @@ class InventorySnapshot(Base):
     as_of_date: Mapped[date]
 
 
+class DailyOrders(Base):
+    """Distributor orders per SKU per day (optional SAP export). Used by the pre-PO check."""
+
+    __tablename__ = "daily_orders"
+    __table_args__ = (UniqueConstraint("sku_id", "order_date"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    sku_id: Mapped[str] = mapped_column(ForeignKey("sku.sku_id"))
+    order_date: Mapped[date]
+    units_ordered: Mapped[int]
+
+
 class OpenPo(Base):
     """Current open and in-transit purchase orders. Replaced on every load."""
 

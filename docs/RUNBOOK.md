@@ -8,7 +8,7 @@
 | `scheduled_runs_enabled` | The Monday/Thursday scheduled run skips (exit code 4). Manual runs still work. |
 | `ai_assistant_enabled` | The "Get AI brief" button is hidden and the brief endpoint refuses. |
 | `zoho_api_enabled` | Draft POs are not sent to Zoho; the CSV export is the only route. Starts OFF. |
-| `pre_po_check_enabled` | The pre-PO sales check does not run. |
+| `pre_po_check_enabled` | The daily pre-PO sales check and the on-demand check do not run. Release big POs only after checking recent orders by hand. |
 
 A switch that is missing or cannot be read counts as **OFF**. Every flip needs a reason and is
 stored in `switch_audit` (who, when, why, old and new value). Only users listed in `switch_admins`

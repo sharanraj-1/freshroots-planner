@@ -106,6 +106,14 @@ def _write(session, ds):
     if ds.open_pos is not None:
         session.execute(delete(m.OpenPo))
         session.add_all(m.OpenPo(**p.model_dump()) for p in ds.open_pos)
+    if ds.daily_orders is not None:
+        existing = {(r.sku_id, r.order_date): r for r in session.scalars(select(m.DailyOrders))}
+        for o in ds.daily_orders:
+            row = existing.get((o.sku_id, o.order_date))
+            if row:
+                row.units_ordered = o.units_ordered
+            else:
+                session.add(m.DailyOrders(**o.model_dump()))
     if ds.suppliers is not None:
         session.execute(delete(m.Supplier))
         known = new_skus

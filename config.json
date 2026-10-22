@@ -31,6 +31,9 @@
     "Shelf-life risk",
     "Other"
   ],
+  "pre_po_check_value_inr": 500000,
+  "pre_po_drop_threshold": 0.20,
+  "pre_po_recent_days": 3,
   "switch_admins": ["raghav"],
   "alert_recipients": [],
   "schedule": {"run_days": ["Mon", "Thu"], "deadline": "07:00"},

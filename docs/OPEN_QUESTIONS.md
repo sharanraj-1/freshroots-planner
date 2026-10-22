@@ -12,4 +12,5 @@ it is answered and the answer is written into `config.json` or this file.
 | 5 | Do the 6-week and 3-week minimums already include supplier lead time? | Lead time is stored (`supplier_master.csv`) but not used. |
 | 6 | Should a missing week of sales stop the run, or count as zero sales? | Warning only. The 12-week average then spans more than 12 calendar weeks. |
 | 7 | Do open POs and in-transit stock both count towards cover? | Both count when `open_po.csv` is sent (`cover_includes_open_pos: true`). |
-| 8 | Pre-PO check: what counts as "last 3 days of sales/orders" when SAP only sends weekly sales? | Needs a daily orders export (see Phase 6). |
+| 8 | Pre-PO check: is daily distributor orders the right "last 3 days" signal, compared with weekly sales? | Average daily orders over the 3 days before the check, compared with the 4-week sales average / 7. Needs SAP to send `daily_orders.csv`. |
+| 9 | Should the pre-PO check look at single distributors? | No: the data is per SKU, so a drop at one distributor is hidden when others hold up. Needs a distributor column. |

@@ -224,8 +224,17 @@ function render(only) {
   $("#checks").innerHTML = checks.length ? checks.map(c => `<li>${esc(c.message)}</li>`).join("") : `<li>No data warnings on this run.</li>`;
 }
 
+function renderPrePo() {
+  const alerts = Array.isArray(state.status?.open_alerts) ? state.status.open_alerts.filter(a => a.kind === "pre_po") : [];
+  $("#prepo").classList.toggle("hidden", !alerts.length);
+  $("#prepo").innerHTML = alerts.map(a => `<div class="banner prepo" role="alert"><div class="wrap">
+    <b>Check before releasing:</b> ${esc(a.message)}
+    <button class="btn on-dark" data-resolve="${a.id}">Checked, dismiss</button></div></div>`).join("");
+}
+
 function renderStatus() {
   const s = state.status;
+  renderPrePo();
   if (!s) return;
   if (s.error) { $("#status").innerHTML = `<p class="error">Status unavailable: ${esc(s.error)}. Treat the planner as paused.</p>`; return; }
   const sw = Array.isArray(s.switches)
@@ -285,6 +294,11 @@ document.addEventListener("click", async e => {
     await decide(id, {action: "edit", qty, reason: $("#rs-" + id).value});
   }
   else if (t.dataset.reject) { await decide(t.dataset.reject, {action: "reject", reason: $("#rs-" + t.dataset.reject).value}); }
+  else if (t.dataset.resolve) {
+    if (!state.user) { showError("Enter your name under “You are” first."); return; }
+    try { await api(`/alerts/${t.dataset.resolve}/resolve`, {method: "POST"}); await loadStatus(); }
+    catch (e) { showError(e.message); }
+  }
   else if (t.dataset.brief) { await getBrief(Number(t.dataset.brief), t); }
   else if (t.id === "pushZoho") {
     t.disabled = true; t.textContent = "Sending…";

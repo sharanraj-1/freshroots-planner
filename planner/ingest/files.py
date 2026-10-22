@@ -66,5 +66,6 @@ def read_folder(folder):
         inventory=rows("current_inventory.csv"),
         open_pos=rows("open_po.csv"),
         suppliers=rows("supplier_master.csv"),
+        daily_orders=rows("daily_orders.csv"),
     )
     return ds, parsed, issues

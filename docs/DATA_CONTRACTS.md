@@ -13,15 +13,17 @@ and the `ingest_report` table records each file's row count, SHA-256 checksum, e
 | `current_inventory.csv` | yes | SKU_ID, Location, Units_On_Hand, As_Of_Date (YYYY-MM-DD) |
 | `open_po.csv` | no | PO_Number, SKU_ID, Units_Open, Status (Open/In_Transit), Expected_Date |
 | `supplier_master.csv` | no | SKU_ID, Supplier_ID, Supplier_Name, Lead_Time_Weeks, Zoho_Vendor_ID, Zoho_Item_ID, Unit_Cost_INR |
+| `daily_orders.csv` | no | Date (YYYY-MM-DD), SKU_ID, Units_Ordered |
 
-The two optional files are not in the seed data. Their columns are a proposal for the SAP team to confirm.
+The three optional files are not in the seed data. Their columns are a proposal for the SAP team to confirm.
 `open_po.csv` and `supplier_master.csv` are current-state snapshots, replaced on each load.
 Sales and inventory are upserted by (SKU, week) and (SKU, location, date).
 
 ## Errors (the load and the run stop)
 - a required file is missing, a header does not match, or a value has the wrong type
 - negative sales or negative stock; duplicate sales, inventory or SKU rows
-- a sales, inventory or open-PO row for a SKU that is not in `sku_master`
+- a sales, inventory, open-PO or daily-order row for a SKU that is not in `sku_master`
+- daily orders dated after the as-of date, or duplicated for a SKU and day
 - a SKU with no inventory or no sales history; an unknown perishability class
 - inventory older than `data_freshness.max_inventory_age_days`, or dated after the run date
 - latest sales week older than `data_freshness.max_sales_age_days`

@@ -52,6 +52,18 @@ schtasks /Create /TN "Freshroots dead-man check" /SC WEEKLY /D MON,THU /ST 07:00
 Check it with `schtasks /Query /TN "Freshroots planning run" /V`, and run it once now with
 `schtasks /Run /TN "Freshroots planning run"`. A non-zero "Last Result" is the exit code above.
 
+### Daily pre-PO check
+Every morning after the SAP export lands (for example 06:30), `scripts/pre_po_check.sh` (or
+`.cmd`) loads the exports and checks every draft PO above `pre_po_check_value_inr`. A SKU whose
+last 3 days of orders are more than `pre_po_drop_threshold` below its 4-week average raises a
+critical alert: email, plus a red banner in the workbench until someone dismisses it.
+```
+30 6 * * * /opt/freshroots_planner/scripts/pre_po_check.sh
+```
+It needs SAP to send `daily_orders.csv` (docs/DATA_CONTRACTS.md). The data is per SKU, so a drop
+at a single distributor is hidden when the others hold up; catching that needs distributor-level
+data. Check one PO on demand with `POST /api/pre-po-check {"sku_ids": [...], "po_value": 650000}`.
+
 ### Kill switches and monitoring
 `python -m planner.control status` (or `GET /status`) shows every switch, the last run, held runs,
 data freshness and open alerts. Pausing, resuming and the manual fallback are in

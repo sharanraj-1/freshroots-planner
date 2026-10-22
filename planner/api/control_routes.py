@@ -1,13 +1,16 @@
 """Kill switches, held runs and system status."""
 
+from datetime import date, datetime
+
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
 from planner import models as m
 from planner.api.deps import current_user, get_config, get_session
 from planner.control import switches, tripwires
 from planner.control.status import status
+from planner.jobs import pre_po_check
 
 router = APIRouter()
 
@@ -68,3 +71,38 @@ def release_run(
     except switches.SwitchError as e:
         raise _refused(e) from e
     return {"id": run.id, "status": run.status, "released_by": run.released_by}
+
+
+class PrePoIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    sku_ids: list[str] = Field(min_length=1)
+    po_value: float = Field(ge=0)
+
+
+@router.post("/pre-po-check")
+def pre_po(body: PrePoIn, cfg=Depends(get_config), session: Session = Depends(get_session)):
+    """On-demand check before releasing a PO. Below the value threshold no check is needed."""
+    if body.po_value <= cfg["pre_po_check_value_inr"]:
+        return {
+            "checked": False,
+            "reason": f"PO value is not above INR {cfg['pre_po_check_value_inr']:,.0f}",
+            "results": [],
+        }
+    try:
+        results = pre_po_check.check_skus(
+            session, cfg, body.sku_ids, date.today(), f"a PO worth INR {body.po_value:,.0f}"
+        )
+    except pre_po_check.CheckOff as e:
+        raise HTTPException(409, str(e)) from e
+    return {"checked": True, "results": results, "alert": any(r["status"] == "dropped" for r in results)}
+
+
+@router.post("/alerts/{alert_id}/resolve")
+def resolve_alert(alert_id: int, user: str = Depends(current_user), session: Session = Depends(get_session)):
+    a = session.get(m.Alert, alert_id)
+    if a is None:
+        raise HTTPException(404, f"alert {alert_id} not found")
+    a.resolved_at = datetime.now()
+    a.message += f" [resolved by {user}]"
+    session.commit()
+    return {"id": a.id, "resolved_at": a.resolved_at}

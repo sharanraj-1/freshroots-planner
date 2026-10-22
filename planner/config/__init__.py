@@ -79,6 +79,9 @@ class RulesConfig(_Strict):
     data_freshness: DataFreshness
     home_regions: list[str]
     decision_reasons: list[str] = Field(min_length=1)  # required for every edit and reject
+    pre_po_check_value_inr: float = Field(ge=0)
+    pre_po_drop_threshold: float = Field(gt=0, lt=1)
+    pre_po_recent_days: int = Field(ge=1)
     switch_admins: list[str] = Field(min_length=1)
     alert_recipients: list[str]
     schedule: Schedule

@@ -108,6 +108,19 @@ def validate(ds, cfg, run_date):
         if not cfg["cover_includes_open_pos"]:
             warn("open-PO data present but cover_includes_open_pos is false: cover uses on-hand only")
 
+    if ds.daily_orders is not None:
+        seen = set()
+        for o in ds.daily_orders:
+            if o.sku_id not in skus:
+                err(
+                    f"{o.sku_id} {o.order_date}: daily orders for a SKU not in sku_master", "daily_orders.csv"
+                )
+            if o.order_date > run_date:
+                err(f"{o.sku_id}: daily orders dated {o.order_date}, after {run_date}", "daily_orders.csv")
+            if (o.sku_id, o.order_date) in seen:
+                err(f"({o.sku_id}, {o.order_date}): duplicate daily order row", "daily_orders.csv")
+            seen.add((o.sku_id, o.order_date))
+
     if ds.suppliers is None:
         warn("no supplier lead times or supplier IDs: POs need a vendor before release")
     else:
