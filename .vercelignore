@@ -1,0 +1,17 @@
+.venv
+.env
+*.db
+out
+out_*
+logs
+inbound
+.taste-skill
+.claude
+tests
+docs
+docker
+scripts
+**/__pycache__
+.pytest_cache
+.ruff_cache
+*.egg-info

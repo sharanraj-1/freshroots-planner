@@ -32,6 +32,17 @@ Three services: `postgres`, `api` (migrates, then serves the API and workbench o
 and `scheduler` (cron: run Monday/Thursday 06:00, dead-man check 07:00, daily pre-PO check 06:30).
 Health: `GET /health`. Operations: [docs/RUNBOOK.md](docs/RUNBOOK.md). KPIs: [docs/KPIS.md](docs/KPIS.md).
 
+## Vercel (demo)
+`api/index.py` serves the FastAPI app as a Vercel Python function (`vercel.json` routes every path
+to it). With no `DATABASE_URL` it runs a **demo**: each fresh instance seeds a throwaway SQLite
+database in `/tmp` from `data/seed`, so decisions reset when the instance is recycled, and
+different instances do not share them. There is no scheduler on Vercel.
+
+For a real hosted deployment, set `DATABASE_URL` to Postgres (run `alembic upgrade head` against it
+once) and the provider keys (`PLANNER_LLM_PROVIDER`, `OPENROUTER_API_KEY` or `GEMINI_API_KEY`,
+`PLANNER_LLM_MODEL`) in the Vercel project settings. Identity is header-based, so put the deployment
+behind Vercel's deployment protection or SSO before real use.
+
 ## Scheduling without Docker: Monday and Thursday at 06:00
 
 Both wrappers load `.env`, ingest `SAP_INBOUND_DIR`, plan today's date and append to `logs/run.log`.

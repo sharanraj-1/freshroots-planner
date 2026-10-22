@@ -2,6 +2,7 @@
 
 import csv
 import io
+import os
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -54,6 +55,7 @@ def meta(cfg=Depends(get_config)):
         "decision_reasons": cfg["decision_reasons"],
         "switch_admins": cfg["switch_admins"],
         "user_header": USER_HEADER,
+        "demo": os.environ.get("PLANNER_DEMO") == "1",
     }
 
 

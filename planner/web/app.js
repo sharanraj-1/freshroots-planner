@@ -296,6 +296,7 @@ function renderTicker() {
     `${decided}/${rs.length} decided`, run.festival_month ? `Festival month +${Math.round(run.config.festival_uplift * 100)}%` : "No festival uplift",
     f.latest_inventory_date ? `Stock as of ${f.latest_inventory_date}` : "Stock date unknown",
     state.status?.planner_enabled === false ? "Planner paused" : "Planner live", "Nothing hits Zoho till you say so",
+    ...(state.meta.demo ? ["Demo deployment: seed data, changes reset"] : []),
   ]);
 }
 
