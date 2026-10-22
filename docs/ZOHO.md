@@ -100,7 +100,13 @@ Per SKU, `supplier_master.csv` supplies `Zoho_Vendor_ID` (required to send), `Zo
   `ZOHO_REFRESH_TOKEN`, `ZOHO_DC=in`). Token refresh tested: OK.
 - **Blocked on:** the Zoho account has **no Zoho Inventory organisation** yet
   (`GET /organizations` returns none; inventory.zoho.in opens the organisation setup form).
-- **To finish:** create the organisation at https://inventory.zoho.in, add vendors and items
+- **Organisation creation refused by Zoho** (case project, demo details): `POST /api/v1/organizations`
+  returned HTTP 400, code 6063 "Action cannot be completed. For assistance, please contact support",
+  for two different organisation names. This is an account-level block that only Zoho support can lift.
+- **Decision for the case project:** the Zoho API stays off (`ZOHO_API_ENABLED=false`). Approved lines go
+  out through the draft-PO CSV export, which Zoho Inventory imports. The API integration remains
+  implemented and covered by mocked tests (`tests/test_zoho.py`).
+- **If an organisation becomes available:** create it at https://inventory.zoho.in, add vendors and items
   (item SKUs = planner SKU_IDs), then run `python -m planner.integrations.zoho_setup`. It saves
   `ZOHO_ORGANIZATION_ID` and drafts `out/zoho/supplier_master_draft.csv`. Then follow the
   checklist above from step 3. `ZOHO_API_ENABLED` stays `false` until then.
