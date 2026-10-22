@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Freshroots planning run – 19 Oct 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EEF1ED; --sheet:#FFFFFF; --ink:#1B2333; --muted:#5B6576; --line:#D3D9D1;
+  --turmeric:#C98A0E; --turmeric-soft:#F6E7C4; --short:#B23E2C; --short-soft:#F5DDD7;
+  --long:#2A6684; --long-soft:#D7E6EE; --ok:#4A7650; --ok-soft:#DDE9DC; --band:#E3E8E1;
+  --focus:#2A6684;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#141A22; --sheet:#1C232D; --ink:#E7EBE6; --muted:#9AA4B2; --line:#323C48;
+  --turmeric:#E3AC3C; --turmeric-soft:#3B3220; --short:#E07A64; --short-soft:#3E2620;
+  --long:#6FB0D0; --long-soft:#1E3440; --ok:#86B98C; --ok-soft:#21352A; --band:#28313C; --focus:#6FB0D0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#141A22; --sheet:#1C232D; --ink:#E7EBE6; --muted:#9AA4B2; --line:#323C48;
+  --turmeric:#E3AC3C; --turmeric-soft:#3B3220; --short:#E07A64; --short-soft:#3E2620;
+  --long:#6FB0D0; --long-soft:#1E3440; --ok:#86B98C; --ok-soft:#21352A; --band:#28313C; --focus:#6FB0D0; color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Archivo,"Segoe UI",system-ui,-apple-system,sans-serif;
+  font-size:15px;line-height:1.5;font-variant-numeric:tabular-nums}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1240px;margin:0 auto;padding:28px 20px 60px}
+header.run{display:grid;grid-template-columns:1fr auto;gap:16px 28px;align-items:end;border-bottom:2px solid var(--ink);padding-bottom:18px}
+@media (max-width:760px){header.run{grid-template-columns:1fr}}
+h1{font-stretch:78%;font-weight:800;font-size:clamp(30px,5vw,48px);line-height:1;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:8px 0 0;max-width:62ch}
+.fest{display:inline-block;background:var(--turmeric-soft);color:var(--ink);border-left:4px solid var(--turmeric);padding:2px 10px;margin-top:10px;font-weight:600}
+.basis{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--ink);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:7px 12px;cursor:pointer;font-weight:600;font-size:13px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.tally{display:flex;flex-wrap:wrap;gap:0;margin:22px 0 14px;border:1px solid var(--line);background:var(--sheet);border-radius:8px}
+.tally button{flex:1 1 120px;text-align:left;background:none;border:0;border-right:1px solid var(--line);padding:12px 16px;cursor:pointer}
+.tally button:last-child{border-right:0}
+.tally b{display:block;font-size:28px;font-stretch:80%;font-weight:800;line-height:1.1}
+.tally span{font-size:13px;color:var(--muted)}
+.tally button[aria-pressed="true"]{box-shadow:inset 0 -4px 0 var(--ink)}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:22px;align-items:start}
+@media (max-width:960px){.layout{grid-template-columns:1fr}}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--muted);margin:0 0 10px}
+.legend i{display:inline-block;vertical-align:middle;margin-right:5px}
+.list{background:var(--sheet);border:1px solid var(--line);border-radius:8px}
+.row{border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.line{display:grid;grid-template-columns:minmax(150px,1.1fr) minmax(200px,1.6fr) 104px 190px;gap:14px;align-items:center;padding:12px 16px}
+@media (max-width:760px){.line{grid-template-columns:1fr 104px}.strip-cell{grid-column:1 / -1;order:3}.act{grid-column:1 / -1;order:4}}
+.name{font-weight:650;line-height:1.25}
+.meta{font-size:12.5px;color:var(--muted)}
+.perish{color:var(--turmeric);font-weight:700}
+.dec{font-weight:750;font-size:13px;padding:3px 9px;border-radius:4px;display:inline-block;text-align:center}
+.REORDER{background:var(--short-soft);color:var(--short)} .PAUSE{background:var(--long-soft);color:var(--long)}
+.HOLD{background:var(--ok-soft);color:var(--ok)} .EXCEPTION{background:var(--turmeric-soft);color:var(--ink)}
+.qty{font-size:13px;color:var(--muted);margin-top:3px}
+.flagdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--turmeric);margin-left:6px;vertical-align:middle}
+.act{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.btn{border:1px solid var(--line);background:var(--sheet);padding:5px 10px;border-radius:5px;cursor:pointer;font-size:13px;font-weight:600}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.status{font-size:12.5px;font-weight:650;padding:5px 0}
+.status.approved{color:var(--ok)} .status.edited{color:var(--turmeric)} .status.rejected{color:var(--short)}
+svg.strip{width:100%;height:34px;display:block;overflow:visible}
+.detail{padding:4px 16px 18px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+@media (max-width:760px){.detail{grid-template-columns:1fr}}
+.detail h3{font-size:13px;margin:10px 0 6px;font-weight:700;color:var(--muted)}
+.detail ol,.detail ul{margin:0;padding-left:18px;font-size:13.5px}
+.flags li{margin-bottom:4px}
+.editbox{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--paper);padding:10px;border-radius:6px;margin-top:10px}
+.editbox input{width:90px;padding:5px 8px;border:1px solid var(--line);border-radius:5px;background:var(--sheet)}
+.editbox select{padding:5px 8px;border:1px solid var(--line);border-radius:5px;background:var(--sheet);max-width:100%}
+.ai{border-left:3px solid var(--long);padding:8px 12px;background:var(--paper);border-radius:0 6px 6px 0;font-size:13.5px;margin-top:8px}
+.ai .conf{font-weight:700}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);display:flex;flex-direction:column;gap:16px}
+.panel{background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.panel h2{font-size:17px;margin:0 0 4px;font-stretch:85%;font-weight:800}
+.panel p{margin:0 0 10px;font-size:13px;color:var(--muted)}
+.po{width:100%;border-collapse:collapse;font-size:13px}
+.po td{padding:5px 0;border-bottom:1px solid var(--line)} .po td:last-child{text-align:right;font-weight:700}
+.empty{font-size:13px;color:var(--muted);padding:8px 0}
+.checks li{font-size:13px;margin-bottom:6px}
+.note{font-size:12.5px;color:var(--muted)}
+.hidden{display:none!important}
+.chev{background:none;border:0;cursor:pointer;color:var(--muted);font-size:13px;padding:2px 0;text-decoration:underline;text-underline-offset:3px}
+@media (prefers-reduced-motion:no-preference){.row{transition:background .2s}.row.just{background:var(--ok-soft)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="run">
+    <div>
+      <h1>Planning run, Monday 19 October</h1>
+      <p class="sub">15 SKUs checked against Raghav’s reorder rules using sales to week 42 and stock as of this morning. Nothing reaches Zoho until you approve it.</p>
+      <span class="fest">October is a festival month: demand baseline raised 25%</span>
+    </div>
+    <div class="basis">
+      <span id="basisLabel">How the high-demand test treats the festival uplift</span>
+      <div class="seg" role="group" aria-labelledby="basisLabel">
+        <button data-basis="unadjusted" aria-pressed="true">Compare to normal baseline</button>
+        <button data-basis="adjusted" aria-pressed="false">Compare to raised baseline</button>
+      </div>
+      <span id="basisNote" class="note"></span>
+    </div>
+  </header>
+
+  <div class="tally" id="tally" role="group" aria-label="Filter SKUs"></div>
+
+  <div class="layout">
+    <main>
+      <div class="legend" aria-hidden="true">
+        <span><i style="width:22px;height:10px;background:var(--band)"></i>Target cover window</span>
+        <span><i style="width:10px;height:10px;border-radius:50%;background:var(--ink)"></i>Weeks of cover now</span>
+        <span><i style="width:10px;height:10px;border-radius:50%;border:2px solid var(--muted)"></i>Without festival uplift</span>
+        <span><i style="width:18px;height:3px;background:var(--short)"></i>After recommended order</span>
+      </div>
+      <div class="list" id="list"></div>
+    </main>
+    <aside class="side">
+      <section class="panel">
+        <h2>Draft purchase order</h2>
+        <p>Approved reorder lines. Vendor must be assigned in Zoho before release.</p>
+        <table class="po" id="po"></table>
+        <div class="act" style="justify-content:flex-start;margin-top:12px">
+          <button class="btn primary hidden" id="savePo">Save PO as CSV</button>
+          <button class="btn hidden" id="saveLog">Save decision log</button>
+        </div>
+        <p class="note" id="saveMsg" style="margin-top:8px"></p>
+      </section>
+      <section class="panel">
+        <h2>Before you trust this run</h2>
+        <ul class="checks" id="checks"></ul>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<script>
+const DATA = __DATA__;
+const REASONS = ["Festival judgment","Known distributor or market event","Supplier or MOQ constraint","Data looks wrong","Shelf-life risk","Other"];
+const store = {
+  key: "fr-decisions-" + DATA.run_date,
+  load(){ try{ return JSON.parse(localStorage.getItem(this.key)) || {}; }catch(e){ return {}; } },
+  save(v){ try{ localStorage.setItem(this.key, JSON.stringify(v)); }catch(e){} }
+};
+let decisions = store.load();       // {basis: {sku: {status, qty, reason, at}}}
+let basis = "unadjusted", filter = "all", open = new Set(), briefs = {};
+let sample = null, downloads = null;
+
+const $ = s => document.querySelector(s);
+const rows = () => DATA.runs[basis].rows;
+const dec = sku => (decisions[basis] || {})[sku];
+const fmt = n => n == null ? "–" : Number(n).toLocaleString("en-IN");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const needsReview = r => r.review_flags.length + r.exception_reasons.length > 0;
+
+function setDecision(sku, d){
+  decisions[basis] = decisions[basis] || {};
+  if (d) decisions[basis][sku] = {...d, at: new Date().toISOString()}; else delete decisions[basis][sku];
+  store.save(decisions); render(sku);
+}
+
+function strip(r){
+  const S = 16, W = 300, x = v => Math.min(v, S) / S * W;
+  const lo = x(r.min_cover), hi = x(r.max_cover), c = x(r.weeks_cover), u = x(r.weeks_cover_unadjusted);
+  const over = r.weeks_cover > S;
+  let post = "";
+  if (r.post_order_cover != null) post = `<line x1="${c}" y1="17" x2="${x(r.post_order_cover)}" y2="17" stroke="var(--short)" stroke-width="3"/><circle cx="${x(r.post_order_cover)}" cy="17" r="3" fill="var(--short)"/>`;
+  const ticks = [0,4,8,12,16].map(t => `<text x="${x(t)}" y="33" font-size="9" fill="var(--muted)" text-anchor="${t===0?'start':t===16?'end':'middle'}">${t}${t===16?'+ wks':''}</text>`).join("");
+  return `<svg class="strip" viewBox="0 0 ${W} 34" preserveAspectRatio="none" role="img" aria-label="${r.weeks_cover} weeks of cover; target ${r.min_cover} to ${r.max_cover}">
+    <line x1="0" y1="17" x2="${W}" y2="17" stroke="var(--line)" stroke-width="1"/>
+    <rect x="${lo}" y="9" width="${Math.max(hi-lo,2)}" height="16" fill="var(--band)" rx="2"/>
+    ${r.festival ? `<circle cx="${u}" cy="17" r="4.5" fill="none" stroke="var(--muted)" stroke-width="1.5"/>` : ""}
+    ${post}
+    <circle cx="${c}" cy="17" r="6" fill="var(--ink)"/>
+    ${over ? `<text x="${W-2}" y="8" font-size="10" text-anchor="end" fill="var(--long)" font-weight="700">${r.weeks_cover} wks</text>` : ""}
+    ${ticks}</svg>`;
+}
+
+function spark(r){
+  const W = 320, H = 90, n = r.units.length, max = Math.max(...r.units, r.adjusted_weekly) * 1.08;
+  const bw = W / n, y = v => H - v / max * (H - 12);
+  const bars = r.units.map((u,i) => `<rect x="${i*bw+1.5}" y="${y(u)}" width="${bw-3}" height="${H-y(u)}" fill="${i>=n-4?'var(--ink)':'var(--line)'}"><title>${r.weeks[i]}: ${u} units</title></rect>`).join("");
+  return `<svg viewBox="0 0 ${W} ${H+14}" style="width:100%;max-width:420px" role="img" aria-label="16 weeks of unit sales, last 4 highlighted">
+    ${bars}
+    <line x1="0" x2="${W}" y1="${y(r.avg_12w)}" y2="${y(r.avg_12w)}" stroke="var(--long)" stroke-dasharray="4 3"/>
+    ${r.festival ? `<line x1="0" x2="${W}" y1="${y(r.adjusted_weekly)}" y2="${y(r.adjusted_weekly)}" stroke="var(--turmeric)" stroke-width="1.5"/>` : ""}
+    <text x="0" y="${H+12}" font-size="9" fill="var(--muted)">${r.weeks[0]}</text>
+    <text x="${W}" y="${H+12}" font-size="9" fill="var(--muted)" text-anchor="end">${r.weeks[n-1]}</text>
+  </svg>
+  <div class="note"><span style="color:var(--long)">Dashed</span>: 12-week average (${fmt(r.avg_12w)}/wk). ${r.festival?`<span style="color:var(--turmeric)">Solid</span>: with festival uplift (${fmt(r.adjusted_weekly)}/wk). `:""}Dark bars: last 4 weeks (${fmt(r.avg_4w)}/wk).</div>`;
+}
+
+function rowHTML(r){
+  const d = dec(r.sku_id), isOpen = open.has(r.sku_id);
+  const qtyText = r.decision === "REORDER" ? `${fmt(r.recommended_qty)} units` : r.decision === "PAUSE" ? "skip next order" : r.decision === "HOLD" ? "no order" : "planner decides";
+  let act;
+  if (d) {
+    const label = d.status === "approved" ? `Approved${d.qty ? `: ${fmt(d.qty)} units` : ""}` : d.status === "edited" ? `Changed to ${fmt(d.qty)} units (${esc(d.reason)})` : `Rejected (${esc(d.reason)})`;
+    act = `<span class="status ${d.status}">${label}</span><button class="btn" data-undo="${r.sku_id}">Undo</button>`;
+  } else {
+    act = `<button class="btn primary" data-approve="${r.sku_id}">Approve</button><button class="btn" data-toggle="${r.sku_id}" aria-expanded="${isOpen}">${isOpen?"Close":"Review"}</button>`;
+  }
+  const flags = [...r.exception_reasons, ...r.review_flags];
+  const ai = briefs[basis + r.sku_id];
+  return `<div class="line">
+      <div><div class="name">${esc(r.sku_name.replace("Freshroots ",""))}${needsReview(r)?'<span class="flagdot" title="Needs review"></span>':""}</div>
+        <div class="meta">${r.sku_id}, ${fmt(r.stock_on_hand)} in stock${r.perishability==="High"?', <span class="perish">perishable</span>':""}</div></div>
+      <div class="strip-cell">${strip(r)}</div>
+      <div><span class="dec ${r.decision}">${r.decision.charAt(0)+r.decision.slice(1).toLowerCase()}</span><div class="qty">${qtyText}</div></div>
+      <div class="act">${act}</div>
+    </div>
+    ${isOpen ? `<div class="detail">
+      <div>
+        <h3>Last 16 weeks</h3>${spark(r)}
+        <h3>How the rules decided</h3><ol>${r.rule_trace.map(t=>`<li>${esc(t)}</li>`).join("")}</ol>
+      </div>
+      <div>
+        ${flags.length ? `<h3>Why this needs your eye</h3><ul class="flags">${flags.map(f=>`<li>${esc(f)}</li>`).join("")}</ul>` : `<h3>No flags</h3><p class="note">All values sit clearly inside the documented rules.</p>`}
+        ${r.decision==="REORDER" ? `<p class="note">After this order: ${r.post_order_cover} weeks of cover. To reach ${r.min_cover} weeks: ${fmt(r.qty_to_min_cover)} units. Mid-window: ${fmt(r.qty_to_mid_cover)} units.</p>` : ""}
+        <div class="editbox">
+          <label>Order qty <input type="number" min="0" step="1" id="q-${r.sku_id}" value="${r.recommended_qty}"></label>
+          <label class="hidden-label">Reason <select id="rs-${r.sku_id}">${REASONS.map(x=>`<option>${x}</option>`).join("")}</select></label>
+          <button class="btn" data-edit="${r.sku_id}">Save change</button>
+          <button class="btn" data-reject="${r.sku_id}">Reject</button>
+        </div>
+        ${needsReview(r) ? `<div class="aiwrap ${sample?'':'hidden'}">
+          <button class="btn" data-brief="${r.sku_id}" style="margin-top:10px">${ai?"Ask again":"Get AI brief"}</button>
+          ${ai ? `<div class="ai">${ai}</div>` : ""}
+        </div>` : ""}
+      </div></div>` : ""}`;
+}
+
+function render(only){
+  const rs = rows();
+  // tally
+  const c = k => k==="all" ? rs.length : k==="review" ? rs.filter(needsReview).length : rs.filter(r=>r.decision===k).length;
+  const pend = rs.filter(r=>!dec(r.sku_id)).length;
+  $("#tally").innerHTML = [["all","All SKUs",`${pend} awaiting decision`],["review","Need review","flagged by the rules"],["REORDER","Reorder",`${fmt(rs.reduce((a,r)=>a+r.recommended_qty,0))} units proposed`],["PAUSE","Pause","skip next order"],["HOLD","Hold","inside window"]]
+    .map(([k,l,s])=>`<button data-filter="${k}" aria-pressed="${filter===k}"><b>${c(k)}</b>${l}<br><span>${s}</span></button>`).join("");
+  // list
+  const vis = rs.filter(r => filter==="all" || (filter==="review" ? needsReview(r) : r.decision===filter));
+  if (only && $(`#row-${only}`) && vis.some(r=>r.sku_id===only)) {
+    $(`#row-${only}`).innerHTML = rowHTML(rs.find(r=>r.sku_id===only));
+  } else {
+    $("#list").innerHTML = vis.length ? vis.map(r=>`<div class="row" id="row-${r.sku_id}">${rowHTML(r)}</div>`).join("") : `<p class="empty" style="padding:16px">No SKUs in this view.</p>`;
+  }
+  // PO
+  const lines = rs.map(r => {
+    const d = dec(r.sku_id);
+    if (!d || d.status==="rejected") return null;
+    const q = d.qty ?? 0;
+    return q > 0 ? {r, q, d} : null;
+  }).filter(Boolean);
+  $("#po").innerHTML = lines.length ? lines.map(({r,q})=>`<tr><td>${esc(r.sku_name.replace("Freshroots ",""))}</td><td>${fmt(q)}</td></tr>`).join("") + `<tr><td><b>Total units</b></td><td>${fmt(lines.reduce((a,l)=>a+l.q,0))}</td></tr>`
+    : `<tr><td class="empty">Approve a reorder line to add it here.</td></tr>`;
+  $("#savePo").classList.toggle("hidden", !downloads || !lines.length);
+  $("#saveLog").classList.toggle("hidden", !downloads || !Object.keys(decisions[basis]||{}).length);
+  document.querySelectorAll(".seg button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.basis===basis));
+  $("#basisNote").textContent = basis==="unadjusted"
+    ? "Default. Mango Drink gets both the uplift and the 1.5× multiplier."
+    : "Uplift counted once. Mango Drink orders the standard 500.";
+}
+
+function csv(rowsArr){ return rowsArr.map(r=>r.map(v=>{v=String(v??"");return /[",\n]/.test(v)?`"${v.replace(/"/g,'""')}"`:v;}).join(",")).join("\r\n"); }
+
+document.addEventListener("click", async e => {
+  const t = e.target.closest("button"); if (!t) return;
+  const rs = rows(), get = id => rs.find(r=>r.sku_id===id);
+  if (t.dataset.filter){ filter = t.dataset.filter; render(); }
+  else if (t.dataset.basis){ basis = t.dataset.basis; open.clear(); render(); }
+  else if (t.dataset.toggle){ const id=t.dataset.toggle; open.has(id)?open.delete(id):open.add(id); render(id); }
+  else if (t.dataset.approve){ const r=get(t.dataset.approve); open.delete(r.sku_id); setDecision(r.sku_id,{status:"approved",qty:r.recommended_qty,reason:"Rule accepted"}); }
+  else if (t.dataset.undo){ setDecision(t.dataset.undo,null); }
+  else if (t.dataset.edit){ const id=t.dataset.edit, q=Math.max(0,Math.round(+$("#q-"+id).value||0)); open.delete(id);
+    setDecision(id, q===get(id).recommended_qty ? {status:"approved",qty:q,reason:"Rule accepted"} : {status:"edited",qty:q,reason:$("#rs-"+id).value}); }
+  else if (t.dataset.reject){ const id=t.dataset.reject; open.delete(id); setDecision(id,{status:"rejected",qty:0,reason:$("#rs-"+id).value}); }
+  else if (t.dataset.brief){ await brief(get(t.dataset.brief), t); }
+  else if (t.id==="savePo" || t.id==="saveLog"){ await save(t.id); }
+});
+
+async function brief(r, btn){
+  const key = basis + r.sku_id;
+  btn.disabled = true; btn.textContent = "Thinking…";
+  const payload = Object.fromEntries(["sku_id","sku_name","perishability","decision","recommended_qty","exception_reasons","review_flags","stock_on_hand","standard_qty","avg_12w","avg_4w","adjusted_weekly","weeks_cover","min_cover","max_cover","post_order_cover","qty_to_min_cover","festival"].map(k=>[k,r[k]]));
+  payload.weekly_sales_16w = Object.fromEntries(r.weeks.map((w,i)=>[w,r.units[i]]));
+  try {
+    const b = await sample.json(DATA.agent_prompt + "\n\nINPUT:\n" + JSON.stringify(payload), {modelTier:"default"});
+    const q = b.suggested_qty_range;
+    briefs[key] = `<p><b>What is unusual.</b> ${esc(b.what_is_unusual||"")}</p>
+      <ul>${(b.drivers||[]).map(d=>`<li>${esc(d.driver)} <span class="note">(${d.basis==="supported_by_data"?"supported by data":"hypothesis"}${d.evidence?": "+esc(d.evidence):""})</span></li>`).join("")}</ul>
+      <p><b>Suggested quantity.</b> ${q && typeof q==="object" ? `${fmt(q.low)}–${fmt(q.high)} units. <span class="note">${esc(q.calculation||"")}</span>` : "Not enough data to suggest one."}</p>
+      <p><b>Check before deciding.</b> ${(b.planner_should_verify||[]).map(esc).join("; ")}</p>
+      <p class="conf">Confidence: ${esc(b.confidence||"not stated")}. Advisory only; the decision is yours.</p>`;
+  } catch(err) {
+    if (err && err.code === "not_granted") { sample = null; }
+    briefs[key] = err && err.code==="rate_limited" ? "Too many requests just now. Wait a minute, then ask again." :
+                  err && err.code==="not_granted" ? "AI briefs are off because access to Claude was declined." :
+                  "The brief could not be generated. Review the flags above and decide from the data.";
+  }
+  render(r.sku_id);
+}
+
+async function save(which){
+  const rs = rows(), msg = $("#saveMsg");
+  let filename, data;
+  if (which==="savePo"){
+    const out=[["Item SKU","Item Name","Quantity","Vendor","Status","Rule quantity","Planner note"]];
+    rs.forEach(r=>{const d=dec(r.sku_id); if(d && d.status!=="rejected" && d.qty>0) out.push([r.sku_id,r.sku_name,d.qty,"TO BE ASSIGNED","Draft",r.recommended_qty,d.reason]);});
+    filename=`zoho_draft_po_${DATA.run_date}.csv`; data=csv(out);
+  } else {
+    const out=[["Run date","Trend basis","SKU","Rule decision","Rule qty","Planner action","Planner qty","Reason","Flags","Decided at"]];
+    rs.forEach(r=>{const d=dec(r.sku_id); if(d) out.push([DATA.run_date,basis,r.sku_id,r.decision,r.recommended_qty,d.status,d.qty,d.reason,[...r.exception_reasons,...r.review_flags].join(" | "),d.at]);});
+    filename=`planner_decision_log_${DATA.run_date}.csv`; data=csv(out);
+  }
+  try { await downloads.save({filename, data}); msg.textContent = "Saved."; }
+  catch(e){ msg.textContent = e && e.code==="declined" ? "Save cancelled." : "Saving files is not available here."; }
+}
+
+$("#checks").innerHTML = DATA.checks.map(c=>`<li>${esc(c)}</li>`).join("");
+render();
+(async () => {
+  if (!window.claude || !window.claude.use) return;
+  try { sample = await window.claude.use("sample"); } catch(e){ sample = null; }
+  try { downloads = await window.claude.use("downloads"); } catch(e){ downloads = null; }
+  render();
+})();
+</script>
+</body>
+</html>

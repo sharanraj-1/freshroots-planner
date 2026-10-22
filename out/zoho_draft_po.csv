@@ -1,0 +1,6 @@
+Item SKU,Item Name,Quantity,Vendor,Status,Reason,Needs Review
+SKU001,Freshroots Mango Drink 200ml,750,TO BE ASSIGNED,Draft,Below 6 wks -> reorder 750 (= 500 x 1.5),Yes
+SKU003,Freshroots Brown Rice 1kg,300,TO BE ASSIGNED,Draft,Below 6 wks -> reorder 300 (= 300),Yes
+SKU004,Freshroots Almond Milk 500ml,150,TO BE ASSIGNED,Draft,Below 3 wks -> reorder 150 (= 150),No
+SKU011,Freshroots Multigrain Bread 400g,500,TO BE ASSIGNED,Draft,Below 3 wks -> reorder 500 (= 500),No
+SKU013,Freshroots Peanut Butter 300g,120,TO BE ASSIGNED,Draft,Below 6 wks -> reorder 120 (= 120),Yes

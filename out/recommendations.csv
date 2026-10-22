@@ -1,0 +1,16 @@
+sku_id,sku_name,perishability,stock_on_hand,avg_12w,avg_4w,adjusted_weekly,trend_ratio,high_demand,weeks_cover,min_cover,max_cover,decision,recommended_qty,post_order_cover,qty_to_min_cover,needs_review,notes
+SKU001,Freshroots Mango Drink 200ml,Low,900,214.92,261,268.65,1.214,True,3.35,6,14,REORDER,750,6.14,712,True,Festival uplift and high-demand multiplier both applied: possible double count | Volatile demand (CV 0.15) - check for a level shift
+SKU002,Freshroots Oats Cookies 150g,Low,1200,83.75,83.75,104.69,1.0,False,11.46,6,14,HOLD,0,,0,True,"Decision depends on festival uplift: without it, PAUSE"
+SKU003,Freshroots Brown Rice 1kg,Low,820,150.5,150.75,188.12,1.002,False,4.36,6,14,REORDER,300,5.95,309,True,Standard qty leaves only 5.95 wks cover; 309 units needed to reach 6 wks
+SKU004,Freshroots Almond Milk 500ml,High,180,79.83,81,99.79,1.015,False,1.8,3,4,REORDER,150,3.31,120,False,
+SKU005,Freshroots Mixed Nuts 100g,Low,600,59.5,58.25,74.38,0.979,False,8.07,6,14,HOLD,0,,0,False,
+SKU006,Freshroots Quinoa 500g,Low,1100,39.58,40.25,49.48,1.017,False,22.23,6,14,PAUSE,0,,0,False,
+SKU007,Freshroots Coconut Water 330ml,High,620,121.5,133.5,151.88,1.099,False,4.08,3,4,PAUSE,0,,0,True,Cover 4.08 wks is within 10% of a threshold (3/4)
+SKU008,Freshroots Granola Bar 40g,Low,950,108.75,103,135.94,0.947,False,6.99,6,14,HOLD,0,,0,False,
+SKU009,Freshroots Chia Seeds 200g,Low,400,34.08,34.75,42.6,1.02,False,9.39,6,14,HOLD,0,,0,False,
+SKU010,Freshroots Apple Cider Vinegar 500ml,Low,260,24.42,24.75,30.52,1.014,False,8.52,6,14,HOLD,0,,0,False,
+SKU011,Freshroots Multigrain Bread 400g,High,460,204.33,209.25,255.42,1.024,False,1.8,3,4,REORDER,500,3.76,307,False,
+SKU012,Freshroots Herbal Tea 25 bags,Low,480,56.75,60,70.94,1.057,False,6.77,6,14,HOLD,0,,0,False,
+SKU013,Freshroots Peanut Butter 300g,Low,180,45.42,44.75,56.77,0.985,False,3.17,6,14,REORDER,120,5.28,161,True,Standard qty leaves only 5.28 wks cover; 161 units needed to reach 6 wks
+SKU014,Freshroots Dark Chocolate 80g,Low,620,72.42,77.5,90.52,1.07,False,6.85,6,14,HOLD,0,,0,False,
+SKU015,Freshroots Honey 500g,Low,360,29.83,28.75,37.29,0.964,False,9.65,6,14,HOLD,0,,0,False,
