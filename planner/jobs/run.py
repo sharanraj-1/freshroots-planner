@@ -178,7 +178,7 @@ def plan(session, run_date, cfg, outdir=None):
 
 
 def plan_folder(folder, cfg, outdir=None):
-    """Ingest a folder into a throwaway in-memory database and plan it (tests, what-if runs, the static page)."""
+    """Ingest a folder into a throwaway in-memory database and plan it (tests, what-if runs)."""
     from planner.models import Base
 
     engine = make_engine("sqlite://")
