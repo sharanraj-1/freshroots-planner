@@ -3,8 +3,11 @@
 Advisory and read-only: it has no tools and writes nothing except its own ai_brief row.
 The planning run never calls it; briefs are made only when a planner asks.
 
-Environment: GEMINI_API_KEY, PLANNER_LLM_MODEL, optional PLANNER_LLM_THINKING (e.g. "low").
-API reference: https://ai.google.dev/api/generate-content (v1beta generateContent, JSON output).
+Provider (PLANNER_LLM_PROVIDER):
+  gemini      Google's API directly. GEMINI_API_KEY; PLANNER_LLM_MODEL e.g. gemini-3.5-flash-lite.
+              https://ai.google.dev/api/generate-content (v1beta generateContent, JSON output)
+  openrouter  Gemini models through OpenRouter. OPENROUTER_API_KEY; PLANNER_LLM_MODEL e.g.
+              google/gemini-3.5-flash-lite. https://openrouter.ai/docs (chat completions, json_schema)
 """
 
 import json
@@ -26,6 +29,7 @@ from planner.review.queue import review_payload
 log = logging.getLogger("planner.assistant")
 PROMPT = (Path(__file__).parent / "exception_agent_prompt.md").read_text(encoding="utf-8")
 GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta"
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 TIMEOUT_S = 60
 
 
@@ -160,6 +164,66 @@ class GeminiClient:
         return text
 
 
+class OpenRouterClient:
+    """Gemini (or another model) through OpenRouter's OpenAI-compatible chat completions API."""
+
+    def __init__(self, api_key=None, model=None, timeout=TIMEOUT_S, transport=None):
+        self.api_key = api_key if api_key is not None else os.environ.get("OPENROUTER_API_KEY", "")
+        self.model = model or os.environ.get("PLANNER_LLM_MODEL", "")
+        self.timeout = timeout
+        self.transport = transport
+
+    def generate_json(self, system, user, schema):
+        if not self.api_key:
+            raise LLMError("OPENROUTER_API_KEY is not set")
+        if not self.model:
+            raise LLMError("PLANNER_LLM_MODEL is not set")
+        body = {
+            "model": self.model,
+            "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {"name": "exception_brief", "strict": True, "schema": schema},
+            },
+            "max_tokens": 8192,
+        }
+        headers = {"Authorization": f"Bearer {self.api_key}", "X-Title": "Freshroots planner"}
+        try:
+            with httpx.Client(timeout=self.timeout, transport=self.transport) as http:
+                r = http.post(OPENROUTER_URL, json=body, headers=headers)
+        except httpx.TimeoutException as e:
+            raise LLMError(f"OpenRouter timed out after {self.timeout}s") from e
+        except httpx.HTTPError as e:
+            raise LLMError(f"OpenRouter unreachable: {type(e).__name__}") from e
+        try:
+            data = r.json()
+        except ValueError:
+            data = {}
+        err = data.get("error") if isinstance(data, dict) else None
+        if r.status_code != 200 or err:
+            msg = err.get("message") if isinstance(err, dict) else r.text[:200]
+            raise LLMError(f"OpenRouter HTTP {r.status_code}: {msg}")
+        choices = data.get("choices") or []
+        if not choices:
+            raise LLMError("OpenRouter returned no choices")
+        finish = choices[0].get("finish_reason")
+        if finish not in (None, "stop"):
+            raise LLMError(f"OpenRouter stopped early: {finish}")
+        text = (choices[0].get("message") or {}).get("content") or ""
+        if not text:
+            raise LLMError("OpenRouter returned an empty reply")
+        return text
+
+
+def make_client():
+    provider = os.environ.get("PLANNER_LLM_PROVIDER", "gemini").lower()
+    if provider == "openrouter":
+        return OpenRouterClient()
+    if provider == "gemini":
+        return GeminiClient()
+    raise LLMError(f"unknown PLANNER_LLM_PROVIDER '{provider}' (gemini or openrouter)")
+
+
 # ---------- making a brief ----------
 def rule_constants(cfg, payload):
     """Rule settings a brief may quote ("12-week average", "1.5x"), plus the series length."""
@@ -229,7 +293,7 @@ def brief_for(session, rec, cfg, client=None, refresh=False):
     cached = latest_brief(session, rec.id)
     if cached and cached.status == "ok" and not refresh:
         return cached, True
-    client = client or GeminiClient()
+    client = client or make_client()
     row = {**rec.detail, "exception_reasons": rec.exception_reasons, "review_flags": rec.review_flags}
     payload = review_payload(row)
     status, data, g, error = run_assistant(client, payload, cfg)

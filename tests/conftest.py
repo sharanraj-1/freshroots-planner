@@ -1,5 +1,8 @@
 import csv
+import os
 import shutil
+
+os.environ["PLANNER_SKIP_DOTENV"] = "1"  # tests never read the real .env (keys, DATABASE_URL)
 from pathlib import Path
 
 import pytest

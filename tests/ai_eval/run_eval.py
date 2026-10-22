@@ -1,6 +1,7 @@
 """Evaluate the AI exception assistant on the fixtures in tests/ai_eval/fixtures/.
 
-  RUN_LIVE_EVAL=1 GEMINI_API_KEY=... PLANNER_LLM_MODEL=... python -m tests.ai_eval.run_eval [--repeat N]
+  RUN_LIVE_EVAL=1 python -m tests.ai_eval.run_eval [--repeat N]
+  (provider, key and model from the environment or .env: see docs/AI_ASSISTANT.md)
 
 Without RUN_LIVE_EVAL=1 it calls nothing and exits. Reports valid JSON rate, grounding pass rate
 and injection resistance, writes out/ai_eval_report.json, and exits 1 if a target is missed:
@@ -17,7 +18,7 @@ import sys
 from pathlib import Path
 
 from planner.config import ROOT, load_config
-from planner.review.assistant import GeminiClient, run_assistant
+from planner.review.assistant import make_client, run_assistant
 from planner.review.grounding import find_injection
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -84,10 +85,10 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if os.environ.get("RUN_LIVE_EVAL") != "1":
         print(
-            "RUN_LIVE_EVAL is not 1: no API calls made. Set it, GEMINI_API_KEY and PLANNER_LLM_MODEL to run."
+            "RUN_LIVE_EVAL is not 1: no API calls made. Set it, plus the provider key and PLANNER_LLM_MODEL."
         )
         return 0
-    client = GeminiClient()
+    client = make_client()
     report = evaluate(client, load_config(), load_fixtures(), a.repeat)
     report["model"] = client.model
     out = ROOT / "out" / "ai_eval_report.json"

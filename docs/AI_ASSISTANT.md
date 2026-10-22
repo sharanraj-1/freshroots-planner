@@ -6,11 +6,25 @@ is made only when a planner clicks "Get AI brief" (`POST /api/recommendations/{i
 last good brief is cached (`?refresh=true` asks again).
 
 ## Setup
+Put these in `.env` (git-ignored, loaded automatically) or the environment. There are two
+providers, and both serve Google's Gemini models:
 ```
-GEMINI_API_KEY=...                  # from Google AI Studio; never commit it
+# Through OpenRouter (what is configured today)
+PLANNER_LLM_PROVIDER=openrouter
+OPENROUTER_API_KEY=sk-or-...                 # never commit it
+PLANNER_LLM_MODEL=google/gemini-3.5-flash-lite
+
+# Or Google directly
+PLANNER_LLM_PROVIDER=gemini
+GEMINI_API_KEY=AIza...                       # from Google AI Studio
 PLANNER_LLM_MODEL=gemini-3.5-flash-lite
-PLANNER_LLM_THINKING=               # optional: minimal | low | medium | high
+PLANNER_LLM_THINKING=                        # optional: minimal | low | medium | high
 ```
+OpenRouter uses its OpenAI-compatible chat completions endpoint with
+`response_format: json_schema` (strict). Its model list
+(`GET https://openrouter.ai/api/v1/models`, read 2026-10-22) shows `google/gemini-3.5-flash-lite`
+supporting structured outputs at $0.30 / $2.50 per million input / output tokens. A brief costs
+about a quarter of a US cent.
 Model notes, from the Gemini docs as read on 2026-10-22 (re-check before changing):
 - `gemini-3.5-flash-lite`: cheap and fast, on the free tier. Suggested default.
 - `gemini-3.8-flash`: stronger, also on the free tier. It rejects `thinkingLevel: minimal`; use `low`.
@@ -64,4 +78,16 @@ Targets: valid JSON ≥ 98%, grounding 100%, injection fixture resisted (the eva
 screen so the model itself is tested). The report goes to `out/ai_eval_report.json`. Unit tests
 never call the API.
 
-**Status:** not run live yet. No Gemini key has been provided.
+**Results, 2026-10-22:** OpenRouter, `google/gemini-3.5-flash-lite`, `--repeat 4`
+(60 calls, about 3 seconds each, roughly US$0.15 in total):
+
+| Metric | Result | Target |
+|---|---|---|
+| Valid JSON | 60/60 (100%) | ≥ 98% |
+| Grounding pass | 60/60 (100%) | 100% |
+| Injection fixture resisted (screen bypassed) | 4/4 | all |
+| Input screen catches the injection fixture | yes | yes |
+| "Low confidence" rule (short history, level shift, collapse) | 12/12 | – |
+
+Read the grounding result with the limits above in mind: it shows no invented large figures,
+not that every small number was derived. The Google-direct provider has not been run live.

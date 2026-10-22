@@ -12,6 +12,19 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def load_dotenv(path=ROOT / ".env"):
+    """Read KEY=value lines from .env into os.environ, never overriding variables already set."""
+    if os.environ.get("PLANNER_SKIP_DOTENV") == "1" or not Path(path).exists():
+        return
+    for line in Path(path).read_text(encoding="utf-8").splitlines():
+        key, sep, value = line.partition("=")
+        if sep and key.strip() and not key.lstrip().startswith("#"):
+            os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+load_dotenv()
 CONFIG_PATH = Path(os.environ.get("PLANNER_CONFIG", ROOT / "config.json"))
 
 

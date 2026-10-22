@@ -242,7 +242,7 @@ def export_decisions(run_id: int, session: Session = Depends(get_session)):
 
 
 def get_llm_client():
-    return assistant.GeminiClient()
+    return None  # brief_for builds the configured client (make_client) only when a call is needed
 
 
 @router.post("/recommendations/{rec_id}/brief")
