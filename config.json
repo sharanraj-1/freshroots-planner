@@ -12,9 +12,15 @@
     "Low":  {"min_weeks": 6, "max_weeks": 14},
     "High": {"min_weeks": 3, "max_weeks": 4}
   },
+  "cover_includes_open_pos": true,
   "review_flags": {
     "near_threshold_pct": 0.10,
     "volatility_cv": 0.15,
     "min_history_weeks": 12
-  }
+  },
+  "data_freshness": {
+    "max_inventory_age_days": 1,
+    "max_sales_age_days": 13
+  },
+  "home_regions": ["Maharashtra", "Goa"]
 }

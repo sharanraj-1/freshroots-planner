@@ -16,10 +16,13 @@ import sys
 from datetime import datetime
 
 from planner.config import ROOT, load_config
-from planner.ingest.sap_files import SEED_DIR, load_and_validate
+from planner.ingest.files import read_folder
+from planner.ingest.validate import errors, validate
 from planner.integrations.zoho_csv import write_draft_po_csv
 from planner.review.queue import build_review_queue, needs_review
 from planner.rules.engine import evaluate
+
+SEED_DIR = ROOT / "data" / "seed"
 
 RECOMMENDATION_COLS = [
     "sku_id",
@@ -76,7 +79,7 @@ def write_outputs(rows, issues, cfg, is_festival, outdir):
         "config": cfg,
         "festival_month": is_festival,
         "summary": summary,
-        "data_checks": [{"level": level, "message": m} for level, m in issues],
+        "data_checks": [i.as_dict() for i in issues],
     }
     with open(os.path.join(outdir, "run_log.json"), "w", encoding="utf-8") as f:
         json.dump(log, f, indent=2)
@@ -85,11 +88,12 @@ def write_outputs(rows, issues, cfg, is_festival, outdir):
 
 def run(run_date=None, trend_basis=None, outdir="out", data_dir=SEED_DIR, config_path=None):
     cfg = load_config(config_path, run_date, trend_basis)
-    skus, dists, inv, cal, series, issues = load_and_validate(cfg, data_dir)
-    errors = [m for level, m in issues if level == "error"]
-    if errors:
-        raise DataError(errors)
-    rows, is_festival, _ = evaluate(cfg, skus, dists, inv, cal, series)
+    ds, _, issues = read_folder(data_dir)
+    if ds is not None:
+        issues += validate(ds, cfg, cfg["run_date"])
+    if errors(issues):
+        raise DataError([f"{i.file}: {i.message}" if i.file else i.message for i in errors(issues)])
+    rows, is_festival, _ = evaluate(cfg, ds)
     summary = write_outputs(rows, issues, cfg, is_festival, ROOT / outdir)
     return rows, summary, issues, cfg
 

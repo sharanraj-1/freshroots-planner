@@ -18,27 +18,36 @@ def decide(cover, lo, hi, high_demand):
     return "HOLD"
 
 
-def evaluate(cfg, skus, dists, inv, cal, series):
+def evaluate(cfg, ds):
+    """Apply the rules to a validated Dataset. Returns (rows, is_festival, uplift)."""
     run_date = date.fromisoformat(cfg["run_date"])
-    is_festival = cal.get(run_date.strftime("%Y-%m"), False)
+    is_festival = ds.festival_months().get(run_date.strftime("%Y-%m"), False)
     uplift = 1 + cfg["festival_uplift"] if is_festival else 1.0
     nb, nt = cfg["baseline_weeks"], cfg["trend_weeks"]
     rf = cfg["review_flags"]
+    dists = ds.distributor_map()
+    series = ds.series()
+    inventory = ds.latest_inventory()
+    open_units = ds.open_units() if cfg["cover_includes_open_pos"] else None
     rows = []
-    for sku, m in skus.items():
+    for sku, m in ds.sku_map().items():
         units = [u for _, _, u in series.get(sku, [])]
         weeks = [w for _, w, _ in series.get(sku, [])]
-        lo = cfg["cover_windows"][m["Perishability"]]["min_weeks"]
-        hi = cfg["cover_windows"][m["Perishability"]]["max_weeks"]
-        stock = int(inv[sku]["Units_On_Hand"])
-        std = int(m["Standard_Reorder_Qty"])
+        lo = cfg["cover_windows"][m.perishability]["min_weeks"]
+        hi = cfg["cover_windows"][m.perishability]["max_weeks"]
+        on_hand = inventory[sku][0]
+        on_order = (open_units or {}).get(sku, 0)
+        stock = on_hand + on_order  # stock position used for cover
+        std = m.standard_reorder_qty
+        dist = dists.get(m.distributor_id)
         r = dict(
             sku_id=sku,
-            sku_name=m["SKU_Name"],
-            category=m["Category"],
-            perishability=m["Perishability"],
-            distributor=dists.get(m["Distributor_ID"], {}).get("Distributor_Name", m["Distributor_ID"]),
-            stock_on_hand=stock,
+            sku_name=m.sku_name,
+            category=m.category,
+            perishability=m.perishability,
+            distributor=dist.distributor_name if dist else m.distributor_id,
+            stock_on_hand=on_hand,
+            open_po_units=on_order if open_units is not None else None,
             standard_qty=std,
             min_cover=lo,
             max_cover=hi,
@@ -120,6 +129,8 @@ def evaluate(cfg, skus, dists, inv, cal, series):
             review_flags=flags,
             rule_trace=trace(decision, cover, lo, hi, high, trend_ratio, uplift, std, qty),
         )
+        if open_units is not None:
+            r["rule_trace"].insert(0, f"Stock position {stock} = {on_hand} on hand + {on_order} on order")
         rows.append(r)
     return rows, is_festival, uplift
 
