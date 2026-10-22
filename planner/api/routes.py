@@ -48,7 +48,11 @@ def _rec_out(rec):
 
 @router.get("/meta")
 def meta(cfg=Depends(get_config)):
-    return {"decision_reasons": cfg["decision_reasons"], "user_header": USER_HEADER}
+    return {
+        "decision_reasons": cfg["decision_reasons"],
+        "switch_admins": cfg["switch_admins"],
+        "user_header": USER_HEADER,
+    }
 
 
 @router.get("/runs", response_model=list[RunOut])

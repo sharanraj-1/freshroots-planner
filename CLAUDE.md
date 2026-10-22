@@ -4,15 +4,17 @@ Twice-weekly demand-planning system for Freshroots (regional FMCG, Maharashtra a
 It replaces a manual monthly Excel process run by the Senior Demand Planner (Raghav).
 The system **recommends**; humans **decide**. It never places an order on its own.
 
-## What exists today (prototype, keep it working)
+## What exists today (keep it working)
 - `planner/rules/engine.py` – pure rule functions. Source of truth for the business logic.
-- `planner/ingest/sap_files.py` – loads seed CSVs from `data/seed/` and validates them.
-- `planner/jobs/run.py` – one planning run; writes `out/` (recommendations, review queue, run log).
-- `planner/integrations/zoho_csv.py` – Zoho draft-PO import CSV.
-- `planner/review/queue.py` + `exception_agent_prompt.md` – review payloads and the AI assistant prompt.
-- `planner/web/build.py` + `workbench_template.html` – planner review screen (static, data embedded).
+- `planner/ingest/` – SAP export contracts (pydantic), validation, all-or-nothing DB load. See docs/DATA_CONTRACTS.md.
+- `planner/jobs/run.py` – scheduled planning run: ingest, check, plan, store, tripwires. `jobs/deadman.py` – 07:00 check.
+- `planner/control/` – kill switches, tripwires, alerts, status. CLI: `python -m planner.control`.
+- `planner/api/` – FastAPI: runs, recommendations, decisions, exports, switches, /status.
+- `planner/web/` – the workbench (vanilla JS, no build step), served by the API at `/`.
+- `planner/integrations/zoho_csv.py` – Zoho draft-PO CSV. `planner/review/` – review payloads and AI prompt.
 - `config.json` – every business threshold. No thresholds hard-coded anywhere else.
-- `tests/` – unit tests and golden tests. `tests/golden/` holds the prototype's exact outputs. Must stay green.
+- `migrations/` – Alembic. `tests/` – unit, golden, API and control tests. `tests/golden/` holds
+  the prototype's exact outputs. Must stay green.
 
 ## Business rules (from Raghav, signed off – do not change without a config change)
 1. Baseline = mean of last 12 complete weeks. Trend = mean of last 4.
@@ -49,7 +51,7 @@ REORDER SKU001=750, SKU003=300, SKU004=150, SKU011=500, SKU013=120; PAUSE SKU006
 ## Stack (keep it simple – a 3-person IT team maintains this)
 - Python 3.11+, FastAPI, SQLAlchemy, Postgres (SQLite allowed for local dev), pydantic for schemas.
 - pytest. ruff for lint/format.
-- Frontend: evolve `workbench_template.html` (vanilla JS, no build step) to read from the API.
+- Frontend: `planner/web/` (vanilla JS, no build step) reads from the API.
 - Scheduling: one cron/Task Scheduler entry calling `python -m planner.jobs.run`.
 - Docker Compose for deployment.
 - LLM: Google Gemini API (not Anthropic), key from env `GEMINI_API_KEY`, model from env
@@ -77,8 +79,9 @@ data/seed/       the seed CSVs
 ## Commands
 - `pip install -e ".[dev]"` – install into the venv
 - `pytest -q` – all tests; `ruff format . && ruff check .` – lint
-- `python -m planner.web.build` – static workbench at `out/workbench.html`
-- `python -m planner.jobs.run --date 2026-10-19` – one planning run
+- `alembic upgrade head` – create or migrate the database (DATABASE_URL, default SQLite planner.db)
+- `python -m planner.jobs.run --date 2026-10-19 --ingest-dir data/seed` – ingest + one planning run
+- `python -m planner.control status|off|on|release` – kill switches and held runs
 - `uvicorn planner.api.main:app --reload` – local API + workbench
 
 ## Working style

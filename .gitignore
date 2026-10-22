@@ -7,3 +7,4 @@ out/
 out_*/
 .env
 planner.db
+.claude/
