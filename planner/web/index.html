@@ -5,82 +5,105 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Freshroots planning run</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div id="paused" class="banner paused hidden" role="alert">
-  <b>Planner paused – use the manual process.</b> <span id="pausedWhy"></span>
+<!-- live ticker band -->
+<div class="ticker" aria-hidden="true"><div class="ticker-track" id="ticker"></div></div>
+
+<div id="paused" class="hazard paused hidden" role="alert">
+  <div class="hazard-box"><b>Planner paused. Use the manual process.</b> <span id="pausedWhy"></span></div>
 </div>
-<div id="held" class="banner held hidden" role="alert">
-  <b>This run is held.</b> <span id="heldWhy"></span>
-  <button class="btn dark hidden" id="releaseBtn">Release run</button>
+<div id="held" class="hazard held hidden" role="alert">
+  <div class="hazard-box"><b>This run is held.</b> <span id="heldWhy"></span>
+    <button class="btn ink hidden" id="releaseBtn">Release run</button></div>
 </div>
 <div id="prepo"></div>
 
-<div class="board">
-  <div class="tile mark" aria-hidden="true">Fr</div>
-  <div class="tile controls">
-    <label class="field"><span>Run</span><select id="runPick"></select></label>
-    <label class="field"><span>You are</span><input id="who" autocomplete="username" placeholder="your name" maxlength="64"></label>
+<div class="shell">
+  <!-- top bar -->
+  <nav class="topbar">
+    <a class="logo" href="#" aria-label="Freshroots planner"><span class="logo-leaf" aria-hidden="true"></span>fresh<b>roots</b><i>/planner</i></a>
+    <label class="chip-field"><span>Run</span><select id="runPick"></select></label>
+    <label class="chip-field"><span>You are</span><input id="who" autocomplete="username" placeholder="your name" maxlength="64"></label>
     <div class="seg" role="group" aria-label="High-demand test basis">
       <button data-view="run" aria-pressed="true">This run’s basis</button>
-      <button data-view="compare" aria-pressed="false">Compare the other basis</button>
+      <button data-view="compare" aria-pressed="false">Compare other basis</button>
     </div>
-  </div>
-  <a class="tile action" href="#poTile"><span>Draft PO</span><b id="topUnits">0 units</b></a>
+    <a class="po-pill" href="#poCard" data-tilt><span>Draft PO</span><b><span id="topUnits" data-count="0">0</span> units</b></a>
+  </nav>
 
-  <header class="tile name"><h1 id="title">Planning run</h1></header>
-  <div class="tile statement">
-    <p id="sub">Loading the latest run…</p>
-    <p class="basis-note" id="basisNote"></p>
-  </div>
+  <!-- hero -->
+  <section class="hero">
+    <div class="hero-date card" data-tilt>
+      <h1 id="title" aria-label="Planning run">Planning run</h1>
+      <span class="sticker holo hidden" id="festSticker">Festival month · +25%</span>
+      <div class="bands" aria-hidden="true">
+        <div class="band band-a"><div class="band-track" id="bandA"></div></div>
+        <div class="band band-b"><div class="band-track" id="bandB"></div></div>
+      </div>
+    </div>
+    <div class="hero-say card ink" data-tilt>
+      <p id="sub">Loading the latest run…</p>
+      <p class="basis-note" id="basisNote"></p>
+    </div>
+  </section>
 
+  <!-- stat tiles -->
   <div class="tally" id="tally" role="group" aria-label="Filter SKUs"></div>
 
-  <main class="skus">
-    <p class="error hidden" id="err" role="alert"></p>
-    <div class="legend" aria-hidden="true">
-      <span><i class="key band"></i>Raghav’s cover window</span>
-      <span><i class="key dot"></i>Weeks of cover now</span>
-      <span><i class="key ring"></i>Without festival uplift</span>
-      <span><i class="key after"></i>After the order</span>
-    </div>
-    <div class="list" id="list"></div>
-  </main>
-
-  <aside class="side">
-    <section class="tile po" id="poTile">
-      <h2>Draft purchase order</h2>
-      <p>Approved and changed lines. Zoho only ever receives drafts.</p>
-      <table class="po-table" id="po"></table>
-      <p class="po-msg" id="zohoMsg"></p>
-      <div class="row-actions">
-        <button class="btn light hidden" id="pushZoho">Send drafts to Zoho</button>
-        <a class="btn light hidden" id="savePo" download>Download PO CSV</a>
-        <a class="btn on-field" id="saveLog" download>Download decisions</a>
+  <div class="work">
+    <main class="skus">
+      <div class="skus-head">
+        <h2>Your SKUs, most urgent first</h2>
+        <div class="legend" aria-hidden="true">
+          <span><i class="key band"></i>Raghav’s window</span>
+          <span><i class="key dot"></i>Cover now</span>
+          <span><i class="key ring"></i>No festival uplift</span>
+          <span><i class="key after"></i>After the order</span>
+        </div>
       </div>
-    </section>
-    <section class="tile status">
-      <h2>System</h2>
-      <div id="status"><p class="note">Loading…</p></div>
-    </section>
-    <section class="tile checks-tile">
-      <h2>Before you trust this run</h2>
-      <ul class="checks" id="checks"></ul>
-    </section>
-  </aside>
+      <p class="error hidden" id="err" role="alert"></p>
+      <div class="list" id="list"></div>
+    </main>
+
+    <aside class="side">
+      <section class="card po-card ink" id="poCard" data-tilt>
+        <h2>Draft purchase order</h2>
+        <p>Approved and changed lines. Zoho only ever gets drafts.</p>
+        <table class="po-table" id="po"></table>
+        <p class="po-msg" id="zohoMsg"></p>
+        <div class="row-actions">
+          <button class="btn lime hidden" id="pushZoho">Send drafts to Zoho</button>
+          <a class="btn lime hidden" id="savePo" download>Download PO CSV</a>
+          <a class="btn ghost-light" id="saveLog" download>Download decisions</a>
+        </div>
+      </section>
+      <section class="card status-card" data-tilt>
+        <h2>System</h2>
+        <div id="status"><p class="note">Loading…</p></div>
+      </section>
+      <section class="card checks-card" data-tilt>
+        <h2>Before you trust this run</h2>
+        <ul class="checks" id="checks"></ul>
+      </section>
+    </aside>
+  </div>
 </div>
+
+<!-- closing band -->
+<div class="ticker footer-band" aria-hidden="true"><div class="ticker-track slow" id="footBand"></div></div>
 
 <dialog id="switchDlg">
   <form method="dialog" id="switchForm">
     <h2 id="dlgTitle">Change switch</h2>
     <p class="note" id="dlgNote"></p>
-    <label class="field wide"><span>Reason (stored in the audit log)</span>
+    <label class="dlg-field"><span>Reason (goes in the audit log)</span>
       <textarea id="dlgReason" rows="3" required></textarea></label>
     <p class="error hidden" id="dlgErr"></p>
     <div class="row-actions">
-      <button class="btn primary" value="ok" id="dlgOk">Confirm</button>
+      <button class="btn ink" value="ok" id="dlgOk">Confirm</button>
       <button class="btn" value="cancel" formnovalidate>Cancel</button>
     </div>
   </form>
