@@ -57,7 +57,9 @@
         <h2>Draft purchase order</h2>
         <p>Approved and changed reorder lines. Nothing is released: Zoho receives drafts only.</p>
         <table class="po" id="po"></table>
+        <p class="note" id="zohoMsg"></p>
         <div class="row-actions">
+          <button class="btn primary hidden" id="pushZoho">Send drafts to Zoho</button>
           <a class="btn primary hidden" id="savePo" download>Download PO CSV</a>
           <a class="btn" id="saveLog" download>Download decisions</a>
         </div>

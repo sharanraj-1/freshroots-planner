@@ -103,4 +103,7 @@ def status(session, cfg, today=None):
         "open_alerts": _section(lambda: _alerts(session)),
     }
     out["planner_enabled"] = switches.is_enabled(session, switches.PLANNER)
+    from planner.integrations.zoho import api_enabled
+
+    out["zoho_api_configured"] = api_enabled()
     return out

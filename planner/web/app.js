@@ -206,12 +206,18 @@ function render(only) {
   }
 
   const lines = rs.filter(r => ["approve", "edit"].includes(r.current_decision?.action) && r.current_decision.qty > 0);
+  const zohoTag = d => d.zoho_po_id ? ` <span class="note">in Zoho, draft ${esc(d.zoho_po_id)}</span>`
+    : d.zoho_status === "failed" ? ` <span class="note">Zoho failed: CSV</span>` : d.zoho_status === "csv_only" ? ` <span class="note">no vendor: CSV</span>` : "";
   $("#po").innerHTML = lines.length
-    ? lines.map(r => `<tr><td>${esc(r.sku_name.replace("Freshroots ", ""))}</td><td>${fmt(r.current_decision.qty)}</td></tr>`).join("")
+    ? lines.map(r => `<tr><td>${esc(r.sku_name.replace("Freshroots ", ""))}${zohoTag(r.current_decision)}</td><td>${fmt(r.current_decision.qty)}</td></tr>`).join("")
       + `<tr><td><b>Total units</b></td><td>${fmt(lines.reduce((a, r) => a + r.current_decision.qty, 0))}</td></tr>`
     : `<tr><td class="empty">Approve a reorder line to add it here.</td></tr>`;
   $("#savePo").href = `/api/runs/${run.id}/export/zoho.csv`;
-  $("#savePo").classList.toggle("hidden", !lines.length || run.status !== "completed");
+  const unsent = lines.filter(r => !r.current_decision.zoho_po_id);
+  const zohoOn = state.status?.zoho_api_configured && state.status?.switches?.find?.(s => s.name === "zoho_api_enabled")?.enabled;
+  $("#savePo").classList.toggle("hidden", !unsent.length || run.status !== "completed");
+  $("#pushZoho").classList.toggle("hidden", !zohoOn || !unsent.length || !canDecide());
+  if (!$("#zohoMsg").dataset.sticky) $("#zohoMsg").textContent = zohoOn ? "" : "Zoho API is off: download the CSV and import it into Zoho.";
   $("#saveLog").href = `/api/runs/${run.id}/export/decisions.csv`;
 
   const checks = (run.data_checks || []).filter(c => c.level === "warn");
@@ -280,6 +286,16 @@ document.addEventListener("click", async e => {
   }
   else if (t.dataset.reject) { await decide(t.dataset.reject, {action: "reject", reason: $("#rs-" + t.dataset.reject).value}); }
   else if (t.dataset.brief) { await getBrief(Number(t.dataset.brief), t); }
+  else if (t.id === "pushZoho") {
+    t.disabled = true; t.textContent = "Sending…";
+    try {
+      const r = await api(`/runs/${state.run.id}/push-to-zoho`, {method: "POST"});
+      $("#zohoMsg").textContent = `${r.created.length} line(s) created as Zoho drafts. ${r.csv_only.length} without a vendor and ${r.failed.length} failed: those stay in the CSV.`;
+    } catch (e) { $("#zohoMsg").textContent = e.message; }
+    $("#zohoMsg").dataset.sticky = "1";
+    t.disabled = false; t.textContent = "Send drafts to Zoho";
+    await loadRun(state.run.id); await loadStatus();
+  }
   else if (t.dataset.switch) {
     const name = t.dataset.switch, on = t.dataset.to === "true";
     askReason(`${on ? "Turn on" : "Turn off"} ${SWITCH_LABELS[name] || name}`,

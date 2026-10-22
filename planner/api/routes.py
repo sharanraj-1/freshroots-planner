@@ -13,6 +13,7 @@ from planner import models as m
 from planner.api.deps import USER_HEADER, current_user, get_config, get_session
 from planner.api.schemas import DecisionIn, DecisionOut, RecommendationOut, RunDetail, RunOut
 from planner.control import switches
+from planner.integrations import zoho
 from planner.integrations.zoho_csv import HEADER as ZOHO_HEADER
 from planner.review import assistant
 
@@ -165,8 +166,8 @@ def export_zoho(run_id: int, session: Session = Depends(get_session)):
     rows = []
     for rec in run.recommendations:
         d = _current(rec)
-        if not d or d.action not in ("approve", "edit") or d.qty <= 0:
-            continue
+        if not d or d.action not in ("approve", "edit") or d.qty <= 0 or d.zoho_po_id:
+            continue  # lines already in Zoho as drafts are not exported twice
         supplier = vendors.get(rec.sku_id)
         vendor = supplier.supplier_name if supplier and supplier.zoho_vendor_id else "TO BE ASSIGNED"
         reason = (
@@ -270,3 +271,25 @@ def ai_brief(
         "created_at": brief.created_at,
         "cached": cached,
     }
+
+
+def get_zoho_client():
+    return None  # push_run builds the client only after its gates pass
+
+
+@router.post("/runs/{run_id}/push-to-zoho")
+def push_to_zoho(
+    run_id: int,
+    user: str = Depends(current_user),
+    cfg=Depends(get_config),
+    session: Session = Depends(get_session),
+    client=Depends(get_zoho_client),
+):
+    """Create draft POs in Zoho for approved lines. Lines without a vendor, or that fail, stay in the CSV."""
+    run = _run_or_404(session, run_id)
+    try:
+        return zoho.push_run(session, run, cfg, client)
+    except zoho.ForbiddenCall as e:
+        raise HTTPException(500, str(e)) from e
+    except zoho.ZohoError as e:
+        raise HTTPException(409, str(e)) from e
