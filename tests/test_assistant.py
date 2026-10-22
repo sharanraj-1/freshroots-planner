@@ -439,3 +439,13 @@ def test_provider_selection(monkeypatch):
     monkeypatch.setenv("PLANNER_LLM_PROVIDER", "other")
     with pytest.raises(LLMError, match="unknown PLANNER_LLM_PROVIDER"):
         assistant.make_client()
+
+
+def test_public_demo_serves_every_brief_from_cache(planned, cfg, monkeypatch):
+    monkeypatch.setenv("PLANNER_DEMO", "1")
+    rec = brown_rice(planned)
+    client = FakeClient(LLMError("Gemini HTTP 503: overloaded"), GOOD)
+    first, cached = assistant.brief_for(planned, rec, cfg, client)
+    assert (first.status, cached) == ("error", False)
+    again, cached = assistant.brief_for(planned, rec, cfg, client, refresh=True)
+    assert cached and again.id == first.id and len(client.calls) == 1  # no second paid call

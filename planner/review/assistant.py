@@ -291,7 +291,10 @@ def brief_for(session, rec, cfg, client=None, refresh=False):
     ):
         raise AssistantOff("the AI assistant is switched off")
     cached = latest_brief(session, rec.id)
-    if cached and cached.status == "ok" and not refresh:
+    # On the public demo every brief is made once and then always served from cache, which caps
+    # what an anonymous visitor can spend on the LLM.
+    demo = os.environ.get("PLANNER_DEMO") == "1"
+    if cached and (cached.status == "ok" or demo) and (not refresh or demo):
         return cached, True
     client = client or make_client()
     row = {**rec.detail, "exception_reasons": rec.exception_reasons, "review_flags": rec.review_flags}

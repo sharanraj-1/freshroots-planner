@@ -40,8 +40,9 @@ different instances do not share them. There is no scheduler on Vercel.
 
 For a real hosted deployment, set `DATABASE_URL` to Postgres (run `alembic upgrade head` against it
 once) and the provider keys (`PLANNER_LLM_PROVIDER`, `OPENROUTER_API_KEY` or `GEMINI_API_KEY`,
-`PLANNER_LLM_MODEL`) in the Vercel project settings. Set `PLANNER_ACCESS_PASSWORD` to put the whole site (page and API) behind HTTP Basic auth;
-identity inside the app is still header-based, so use real SSO before production use.
+`PLANNER_LLM_MODEL`) in the Vercel project settings. The hosted demo is public. On it, each AI brief is generated once and then served from cache,
+which caps LLM spend. `PLANNER_ACCESS_PASSWORD` (unset there) puts the whole site behind HTTP Basic
+auth; identity inside the app is still header-based, so use real SSO before production use.
 
 ## Scheduling without Docker: Monday and Thursday at 06:00
 
