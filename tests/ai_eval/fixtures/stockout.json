@@ -1,0 +1,45 @@
+{
+  "name": "stockout",
+  "description": "Perishable stocked out: standard qty leaves cover below minimum.",
+  "payload": {
+    "sku_id": "SYN007",
+    "sku_name": "Freshroots Soy Milk 1L",
+    "perishability": "High",
+    "decision": "REORDER",
+    "recommended_qty": 150,
+    "exception_reasons": [],
+    "review_flags": [
+      "Standard qty leaves only 1.50 wks cover; 300 units needed to reach 3 wks"
+    ],
+    "stock_on_hand": 0,
+    "standard_qty": 150,
+    "avg_12w": 80.0,
+    "avg_4w": 84.0,
+    "adjusted_weekly": 100.0,
+    "weeks_cover": 0.0,
+    "min_cover": 3,
+    "max_cover": 4,
+    "post_order_cover": 1.5,
+    "qty_to_min_cover": 300,
+    "festival": true,
+    "weekly_sales_16w": {
+      "2026-W27": 78,
+      "2026-W28": 80,
+      "2026-W29": 82,
+      "2026-W30": 76,
+      "2026-W31": 79,
+      "2026-W32": 81,
+      "2026-W33": 80,
+      "2026-W34": 83,
+      "2026-W35": 77,
+      "2026-W36": 80,
+      "2026-W37": 82,
+      "2026-W38": 84,
+      "2026-W39": 85,
+      "2026-W40": 83,
+      "2026-W41": 84,
+      "2026-W42": 84
+    }
+  },
+  "expect": {}
+}

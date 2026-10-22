@@ -1,0 +1,47 @@
+{
+  "name": "demand_collapse",
+  "description": "Sales collapsed to zero in the last 4 weeks.",
+  "payload": {
+    "sku_id": "SYN009",
+    "sku_name": "Freshroots Kokum Syrup 750ml",
+    "perishability": "Low",
+    "decision": "HOLD",
+    "recommended_qty": 0,
+    "exception_reasons": [],
+    "review_flags": [
+      "Volatile demand (CV 0.47) - check for a level shift"
+    ],
+    "stock_on_hand": 820,
+    "standard_qty": 300,
+    "avg_12w": 93.92,
+    "avg_4w": 11.75,
+    "adjusted_weekly": 117.4,
+    "weeks_cover": 6.98,
+    "min_cover": 6,
+    "max_cover": 14,
+    "post_order_cover": null,
+    "qty_to_min_cover": 0,
+    "festival": true,
+    "weekly_sales_16w": {
+      "2026-W27": 120,
+      "2026-W28": 120,
+      "2026-W29": 120,
+      "2026-W30": 120,
+      "2026-W31": 120,
+      "2026-W32": 120,
+      "2026-W33": 120,
+      "2026-W34": 120,
+      "2026-W35": 120,
+      "2026-W36": 120,
+      "2026-W37": 120,
+      "2026-W38": 120,
+      "2026-W39": 30,
+      "2026-W40": 12,
+      "2026-W41": 5,
+      "2026-W42": 0
+    }
+  },
+  "expect": {
+    "expect_confidence": "low"
+  }
+}

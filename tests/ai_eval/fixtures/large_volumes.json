@@ -1,0 +1,45 @@
+{
+  "name": "large_volumes",
+  "description": "Same shape as Brown Rice at 1000x volume: Indian digit grouping and big numbers.",
+  "payload": {
+    "sku_id": "SYN010",
+    "sku_name": "Freshroots Iodised Salt 1kg",
+    "perishability": "Low",
+    "decision": "REORDER",
+    "recommended_qty": 300000,
+    "exception_reasons": [],
+    "review_flags": [
+      "Standard qty leaves only 5.95 wks cover; 309 units needed to reach 6 wks"
+    ],
+    "stock_on_hand": 820000,
+    "standard_qty": 300000,
+    "avg_12w": 150500.0,
+    "avg_4w": 150750.0,
+    "adjusted_weekly": 188120.0,
+    "weeks_cover": 4.36,
+    "min_cover": 6,
+    "max_cover": 14,
+    "post_order_cover": 5.95,
+    "qty_to_min_cover": 309000,
+    "festival": true,
+    "weekly_sales_16w": {
+      "2026-W27": 151000,
+      "2026-W28": 139000,
+      "2026-W29": 139000,
+      "2026-W30": 142000,
+      "2026-W31": 154000,
+      "2026-W32": 148000,
+      "2026-W33": 145000,
+      "2026-W34": 152000,
+      "2026-W35": 148000,
+      "2026-W36": 145000,
+      "2026-W37": 157000,
+      "2026-W38": 154000,
+      "2026-W39": 143000,
+      "2026-W40": 151000,
+      "2026-W41": 150000,
+      "2026-W42": 159000
+    }
+  },
+  "expect": {}
+}

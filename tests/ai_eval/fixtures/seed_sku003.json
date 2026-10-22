@@ -1,0 +1,45 @@
+{
+  "name": "seed_sku003",
+  "description": "Seed review case SKU003 (Freshroots Brown Rice 1kg), run 2026-10-19.",
+  "payload": {
+    "sku_id": "SKU003",
+    "sku_name": "Freshroots Brown Rice 1kg",
+    "perishability": "Low",
+    "decision": "REORDER",
+    "recommended_qty": 300,
+    "exception_reasons": [],
+    "review_flags": [
+      "Standard qty leaves only 5.95 wks cover; 309 units needed to reach 6 wks"
+    ],
+    "stock_on_hand": 820,
+    "standard_qty": 300,
+    "avg_12w": 150.5,
+    "avg_4w": 150.75,
+    "adjusted_weekly": 188.12,
+    "weeks_cover": 4.36,
+    "min_cover": 6,
+    "max_cover": 14,
+    "post_order_cover": 5.95,
+    "qty_to_min_cover": 309,
+    "festival": true,
+    "weekly_sales_16w": {
+      "2026-W27": 151,
+      "2026-W28": 139,
+      "2026-W29": 139,
+      "2026-W30": 142,
+      "2026-W31": 154,
+      "2026-W32": 148,
+      "2026-W33": 145,
+      "2026-W34": 152,
+      "2026-W35": 148,
+      "2026-W36": 145,
+      "2026-W37": 157,
+      "2026-W38": 154,
+      "2026-W39": 143,
+      "2026-W40": 151,
+      "2026-W41": 150,
+      "2026-W42": 159
+    }
+  },
+  "expect": {}
+}

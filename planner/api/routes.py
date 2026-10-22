@@ -14,6 +14,7 @@ from planner.api.deps import USER_HEADER, current_user, get_config, get_session
 from planner.api.schemas import DecisionIn, DecisionOut, RecommendationOut, RunDetail, RunOut
 from planner.control import switches
 from planner.integrations.zoho_csv import HEADER as ZOHO_HEADER
+from planner.review import assistant
 
 router = APIRouter()
 FILTERS = ("review", "REORDER", "PAUSE", "HOLD", "EXCEPTION")
@@ -237,3 +238,35 @@ def export_decisions(run_id: int, session: Session = Depends(get_session)):
             )
         )
     return _csv_response(DECISION_HEADER, rows, f"planner_decisions_{run.run_date}.csv")
+
+
+def get_llm_client():
+    return assistant.GeminiClient()
+
+
+@router.post("/recommendations/{rec_id}/brief")
+def ai_brief(
+    rec_id: int,
+    refresh: bool = False,
+    cfg=Depends(get_config),
+    session: Session = Depends(get_session),
+    client=Depends(get_llm_client),
+):
+    """Advisory brief for one recommendation. Cached; made only on request; never blocks a run."""
+    rec = session.get(m.Recommendation, rec_id)
+    if rec is None:
+        raise HTTPException(404, f"recommendation {rec_id} not found")
+    try:
+        brief, cached = assistant.brief_for(session, rec, cfg, client, refresh)
+    except assistant.AssistantOff as e:
+        raise HTTPException(409, str(e)) from e
+    return {
+        "id": brief.id,
+        "status": brief.status,
+        "model": brief.model,
+        "brief": brief.brief,
+        "grounding": brief.grounding,
+        "error": brief.error,
+        "created_at": brief.created_at,
+        "cached": cached,
+    }

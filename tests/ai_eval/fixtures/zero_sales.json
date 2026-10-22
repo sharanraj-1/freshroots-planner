@@ -1,0 +1,47 @@
+{
+  "name": "zero_sales",
+  "description": "16 weeks of zero sales: the rules cannot compute cover.",
+  "payload": {
+    "sku_id": "SYN001",
+    "sku_name": "Freshroots Ragi Flour 1kg",
+    "perishability": "Low",
+    "decision": "EXCEPTION",
+    "recommended_qty": 0,
+    "exception_reasons": [
+      "Zero sales across the baseline window"
+    ],
+    "review_flags": [],
+    "stock_on_hand": 400,
+    "standard_qty": 300,
+    "avg_12w": 0,
+    "avg_4w": 0,
+    "adjusted_weekly": null,
+    "weeks_cover": null,
+    "min_cover": 6,
+    "max_cover": 14,
+    "post_order_cover": null,
+    "qty_to_min_cover": null,
+    "festival": true,
+    "weekly_sales_16w": {
+      "2026-W27": 0,
+      "2026-W28": 0,
+      "2026-W29": 0,
+      "2026-W30": 0,
+      "2026-W31": 0,
+      "2026-W32": 0,
+      "2026-W33": 0,
+      "2026-W34": 0,
+      "2026-W35": 0,
+      "2026-W36": 0,
+      "2026-W37": 0,
+      "2026-W38": 0,
+      "2026-W39": 0,
+      "2026-W40": 0,
+      "2026-W41": 0,
+      "2026-W42": 0
+    }
+  },
+  "expect": {
+    "expect_insufficient": true
+  }
+}

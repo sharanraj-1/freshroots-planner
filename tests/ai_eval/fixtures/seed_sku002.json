@@ -1,0 +1,45 @@
+{
+  "name": "seed_sku002",
+  "description": "Seed review case SKU002 (Freshroots Oats Cookies 150g), run 2026-10-19.",
+  "payload": {
+    "sku_id": "SKU002",
+    "sku_name": "Freshroots Oats Cookies 150g",
+    "perishability": "Low",
+    "decision": "HOLD",
+    "recommended_qty": 0,
+    "exception_reasons": [],
+    "review_flags": [
+      "Decision depends on festival uplift: without it, PAUSE"
+    ],
+    "stock_on_hand": 1200,
+    "standard_qty": 200,
+    "avg_12w": 83.75,
+    "avg_4w": 83.75,
+    "adjusted_weekly": 104.69,
+    "weeks_cover": 11.46,
+    "min_cover": 6,
+    "max_cover": 14,
+    "post_order_cover": null,
+    "qty_to_min_cover": 0,
+    "festival": true,
+    "weekly_sales_16w": {
+      "2026-W27": 86,
+      "2026-W28": 91,
+      "2026-W29": 86,
+      "2026-W30": 83,
+      "2026-W31": 91,
+      "2026-W32": 78,
+      "2026-W33": 89,
+      "2026-W34": 82,
+      "2026-W35": 80,
+      "2026-W36": 79,
+      "2026-W37": 82,
+      "2026-W38": 89,
+      "2026-W39": 80,
+      "2026-W40": 86,
+      "2026-W41": 86,
+      "2026-W42": 83
+    }
+  },
+  "expect": {}
+}

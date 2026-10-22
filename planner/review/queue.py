@@ -26,10 +26,12 @@ def needs_review(row):
     return bool(row["review_flags"] or row["exception_reasons"])
 
 
+def review_payload(row):
+    """What the exception assistant sees for one SKU: the review_queue.json fields."""
+    return {k: row.get(k) for k in QUEUE_FIELDS} | {
+        "weekly_sales_16w": dict(zip(row.get("weeks") or [], row.get("units") or [], strict=True))
+    }
+
+
 def build_review_queue(rows):
-    return [
-        {k: r.get(k) for k in QUEUE_FIELDS}
-        | {"weekly_sales_16w": dict(zip(r["weeks"], r["units"], strict=True))}
-        for r in rows
-        if needs_review(r)
-    ]
+    return [review_payload(r) for r in rows if needs_review(r)]

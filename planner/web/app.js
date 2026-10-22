@@ -306,7 +306,11 @@ async function getBrief(recId, btn) {
 }
 
 function briefHTML(b) {
-  if (b.status !== "ok") return `<p>The brief was not usable (${esc(b.status)}). Review the flags and decide from the data.</p>`;
+  if (b.status !== "ok") {
+    const why = {invalid_json: "the reply was not valid", grounding_failed: `it quoted figures not in the data (${esc((b.grounding?.ungrounded || []).join(", "))})`,
+      injection_detected: "the SKU data contains instruction-like text, so it was not sent", error: esc(b.error || "the AI service failed")}[b.status] || esc(b.status);
+    return `<p>No usable brief: ${why}.</p><p class="note">Review the flags above and decide from the data.</p>`;
+  }
   const x = b.brief, q = x.suggested_qty_range;
   return `<p><b>What is unusual.</b> ${esc(x.what_is_unusual)}</p>
     <ul>${(x.drivers || []).map(d => `<li>${esc(d.driver)} <span class="note">(${d.basis === "supported_by_data" ? "supported by data" : "hypothesis"}${d.evidence ? ": " + esc(d.evidence) : ""})</span></li>`).join("")}</ul>

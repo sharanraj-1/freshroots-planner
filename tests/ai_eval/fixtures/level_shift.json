@@ -1,0 +1,48 @@
+{
+  "name": "level_shift",
+  "description": "Demand doubled in the last 4 weeks: a level shift.",
+  "payload": {
+    "sku_id": "SYN008",
+    "sku_name": "Freshroots Peanut Chikki 50g",
+    "perishability": "Low",
+    "decision": "REORDER",
+    "recommended_qty": 450,
+    "exception_reasons": [],
+    "review_flags": [
+      "Festival uplift and high-demand multiplier both applied: possible double count",
+      "Volatile demand (CV 0.33) - check for a level shift"
+    ],
+    "stock_on_hand": 820,
+    "standard_qty": 300,
+    "avg_12w": 136.67,
+    "avg_4w": 212.5,
+    "adjusted_weekly": 170.83,
+    "weeks_cover": 4.8,
+    "min_cover": 6,
+    "max_cover": 14,
+    "post_order_cover": 7.43,
+    "qty_to_min_cover": 205,
+    "festival": true,
+    "weekly_sales_16w": {
+      "2026-W27": 100,
+      "2026-W28": 100,
+      "2026-W29": 100,
+      "2026-W30": 100,
+      "2026-W31": 100,
+      "2026-W32": 100,
+      "2026-W33": 100,
+      "2026-W34": 100,
+      "2026-W35": 100,
+      "2026-W36": 100,
+      "2026-W37": 100,
+      "2026-W38": 100,
+      "2026-W39": 210,
+      "2026-W40": 220,
+      "2026-W41": 205,
+      "2026-W42": 215
+    }
+  },
+  "expect": {
+    "expect_confidence": "low"
+  }
+}

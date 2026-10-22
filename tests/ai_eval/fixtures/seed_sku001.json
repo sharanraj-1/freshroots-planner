@@ -1,0 +1,46 @@
+{
+  "name": "seed_sku001",
+  "description": "Seed review case SKU001 (Freshroots Mango Drink 200ml), run 2026-10-19.",
+  "payload": {
+    "sku_id": "SKU001",
+    "sku_name": "Freshroots Mango Drink 200ml",
+    "perishability": "Low",
+    "decision": "REORDER",
+    "recommended_qty": 750,
+    "exception_reasons": [],
+    "review_flags": [
+      "Festival uplift and high-demand multiplier both applied: possible double count",
+      "Volatile demand (CV 0.15) - check for a level shift"
+    ],
+    "stock_on_hand": 900,
+    "standard_qty": 500,
+    "avg_12w": 214.92,
+    "avg_4w": 261,
+    "adjusted_weekly": 268.65,
+    "weeks_cover": 3.35,
+    "min_cover": 6,
+    "max_cover": 14,
+    "post_order_cover": 6.14,
+    "qty_to_min_cover": 712,
+    "festival": true,
+    "weekly_sales_16w": {
+      "2026-W27": 194,
+      "2026-W28": 188,
+      "2026-W29": 204,
+      "2026-W30": 186,
+      "2026-W31": 201,
+      "2026-W32": 195,
+      "2026-W33": 185,
+      "2026-W34": 200,
+      "2026-W35": 185,
+      "2026-W36": 197,
+      "2026-W37": 186,
+      "2026-W38": 186,
+      "2026-W39": 261,
+      "2026-W40": 267,
+      "2026-W41": 257,
+      "2026-W42": 259
+    }
+  },
+  "expect": {}
+}

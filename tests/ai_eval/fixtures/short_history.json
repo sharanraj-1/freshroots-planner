@@ -1,0 +1,37 @@
+{
+  "name": "short_history",
+  "description": "New SKU with 6 weeks of history; confidence must be low.",
+  "payload": {
+    "sku_id": "SYN002",
+    "sku_name": "Freshroots Millet Muesli 400g",
+    "perishability": "Low",
+    "decision": "EXCEPTION",
+    "recommended_qty": 0,
+    "exception_reasons": [
+      "Only 6 weeks of history (need 12)"
+    ],
+    "review_flags": [],
+    "stock_on_hand": 150,
+    "standard_qty": 300,
+    "avg_12w": null,
+    "avg_4w": null,
+    "adjusted_weekly": null,
+    "weeks_cover": null,
+    "min_cover": 6,
+    "max_cover": 14,
+    "post_order_cover": null,
+    "qty_to_min_cover": null,
+    "festival": true,
+    "weekly_sales_16w": {
+      "2026-W37": 30,
+      "2026-W38": 42,
+      "2026-W39": 51,
+      "2026-W40": 48,
+      "2026-W41": 60,
+      "2026-W42": 66
+    }
+  },
+  "expect": {
+    "expect_confidence": "low"
+  }
+}

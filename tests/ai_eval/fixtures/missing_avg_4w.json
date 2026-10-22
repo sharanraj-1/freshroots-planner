@@ -1,0 +1,45 @@
+{
+  "name": "missing_avg_4w",
+  "description": "avg_4w missing: the brief must say so, not invent it.",
+  "payload": {
+    "sku_id": "SKU013",
+    "sku_name": "Freshroots Peanut Butter 300g",
+    "perishability": "Low",
+    "decision": "REORDER",
+    "recommended_qty": 120,
+    "exception_reasons": [],
+    "review_flags": [
+      "Standard qty leaves only 5.28 wks cover; 161 units needed to reach 6 wks"
+    ],
+    "stock_on_hand": 180,
+    "standard_qty": 120,
+    "avg_12w": 45.42,
+    "avg_4w": null,
+    "adjusted_weekly": 56.77,
+    "weeks_cover": 3.17,
+    "min_cover": 6,
+    "max_cover": 14,
+    "post_order_cover": 5.28,
+    "qty_to_min_cover": 161,
+    "festival": true,
+    "weekly_sales_16w": {
+      "2026-W27": 42,
+      "2026-W28": 42,
+      "2026-W29": 45,
+      "2026-W30": 47,
+      "2026-W31": 47,
+      "2026-W32": 44,
+      "2026-W33": 46,
+      "2026-W34": 47,
+      "2026-W35": 42,
+      "2026-W36": 46,
+      "2026-W37": 47,
+      "2026-W38": 47,
+      "2026-W39": 46,
+      "2026-W40": 44,
+      "2026-W41": 42,
+      "2026-W42": 47
+    }
+  },
+  "expect": {}
+}
