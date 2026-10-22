@@ -12,3 +12,4 @@ inbound/*
 !inbound/.gitkeep
 logs/*
 !logs/.gitkeep
+.taste-skill/

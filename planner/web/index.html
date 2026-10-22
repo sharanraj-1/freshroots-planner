@@ -5,84 +5,78 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Freshroots planning run</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div id="paused" class="banner paused hidden" role="alert">
-  <div class="wrap"><b>Planner paused – use the manual process.</b> <span id="pausedWhy"></span></div>
+  <b>Planner paused – use the manual process.</b> <span id="pausedWhy"></span>
 </div>
 <div id="held" class="banner held hidden" role="alert">
-  <div class="wrap"><b id="heldTitle">This run is held.</b> <span id="heldWhy"></span>
-    <button class="btn on-dark hidden" id="releaseBtn">Release run</button></div>
+  <b>This run is held.</b> <span id="heldWhy"></span>
+  <button class="btn dark hidden" id="releaseBtn">Release run</button>
 </div>
+<div id="prepo"></div>
 
-<div id="prepo" class="hidden"></div>
+<div class="board">
+  <div class="tile mark" aria-hidden="true">Fr</div>
+  <div class="tile controls">
+    <label class="field"><span>Run</span><select id="runPick"></select></label>
+    <label class="field"><span>You are</span><input id="who" autocomplete="username" placeholder="your name" maxlength="64"></label>
+    <div class="seg" role="group" aria-label="High-demand test basis">
+      <button data-view="run" aria-pressed="true">This run’s basis</button>
+      <button data-view="compare" aria-pressed="false">Compare the other basis</button>
+    </div>
+  </div>
+  <a class="tile action" href="#poTile"><span>Draft PO</span><b id="topUnits">0 units</b></a>
 
-<div class="wrap">
-  <header class="run">
-    <div>
-      <h1 id="title">Planning run</h1>
-      <p class="sub" id="sub">Loading the latest run…</p>
-    </div>
-    <div class="controls">
-      <label class="field inline"><span>Run</span>
-        <select id="runPick"></select></label>
-      <label class="field inline"><span>You are</span>
-        <input id="who" autocomplete="username" placeholder="your name" maxlength="64"></label>
-      <div class="basis">
-        <span id="basisLabel" class="sr-only">High-demand test basis</span>
-        <div class="seg" role="group" aria-labelledby="basisLabel">
-          <button data-view="run" aria-pressed="true">This run’s basis</button>
-          <button data-view="compare" aria-pressed="false" id="compareBtn">Compare the other basis</button>
-        </div>
-        <span id="basisNote" class="note"></span>
-      </div>
-    </div>
-  </header>
+  <header class="tile name"><h1 id="title">Planning run</h1></header>
+  <div class="tile statement">
+    <p id="sub">Loading the latest run…</p>
+    <p class="basis-note" id="basisNote"></p>
+  </div>
 
   <div class="tally" id="tally" role="group" aria-label="Filter SKUs"></div>
 
-  <div class="layout">
-    <main>
-      <div class="legend" aria-hidden="true">
-        <span><i class="key band"></i>Target cover window</span>
-        <span><i class="key dot"></i>Weeks of cover now</span>
-        <span><i class="key ring"></i>Without festival uplift</span>
-        <span><i class="key after"></i>After recommended order</span>
+  <main class="skus">
+    <p class="error hidden" id="err" role="alert"></p>
+    <div class="legend" aria-hidden="true">
+      <span><i class="key band"></i>Raghav’s cover window</span>
+      <span><i class="key dot"></i>Weeks of cover now</span>
+      <span><i class="key ring"></i>Without festival uplift</span>
+      <span><i class="key after"></i>After the order</span>
+    </div>
+    <div class="list" id="list"></div>
+  </main>
+
+  <aside class="side">
+    <section class="tile po" id="poTile">
+      <h2>Draft purchase order</h2>
+      <p>Approved and changed lines. Zoho only ever receives drafts.</p>
+      <table class="po-table" id="po"></table>
+      <p class="po-msg" id="zohoMsg"></p>
+      <div class="row-actions">
+        <button class="btn light hidden" id="pushZoho">Send drafts to Zoho</button>
+        <a class="btn light hidden" id="savePo" download>Download PO CSV</a>
+        <a class="btn on-field" id="saveLog" download>Download decisions</a>
       </div>
-      <p class="error hidden" id="err" role="alert"></p>
-      <div class="list" id="list"></div>
-    </main>
-    <aside class="side">
-      <section class="panel">
-        <h2>Draft purchase order</h2>
-        <p>Approved and changed reorder lines. Nothing is released: Zoho receives drafts only.</p>
-        <table class="po" id="po"></table>
-        <p class="note" id="zohoMsg"></p>
-        <div class="row-actions">
-          <button class="btn primary hidden" id="pushZoho">Send drafts to Zoho</button>
-          <a class="btn primary hidden" id="savePo" download>Download PO CSV</a>
-          <a class="btn" id="saveLog" download>Download decisions</a>
-        </div>
-      </section>
-      <section class="panel" id="statusPanel">
-        <h2>System status</h2>
-        <div id="status"><p class="note">Loading…</p></div>
-      </section>
-      <section class="panel">
-        <h2>Before you trust this run</h2>
-        <ul class="checks" id="checks"></ul>
-      </section>
-    </aside>
-  </div>
+    </section>
+    <section class="tile status">
+      <h2>System</h2>
+      <div id="status"><p class="note">Loading…</p></div>
+    </section>
+    <section class="tile checks-tile">
+      <h2>Before you trust this run</h2>
+      <ul class="checks" id="checks"></ul>
+    </section>
+  </aside>
 </div>
 
 <dialog id="switchDlg">
   <form method="dialog" id="switchForm">
     <h2 id="dlgTitle">Change switch</h2>
     <p class="note" id="dlgNote"></p>
-    <label class="field wide">Reason (stored in the audit log)
+    <label class="field wide"><span>Reason (stored in the audit log)</span>
       <textarea id="dlgReason" rows="3" required></textarea></label>
     <p class="error hidden" id="dlgErr"></p>
     <div class="row-actions">

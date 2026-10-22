@@ -11,7 +11,7 @@ const SWITCH_LABELS = {
 
 const state = {
   meta: {decision_reasons: [], switch_admins: []}, runs: [], run: null, recs: [], status: null,
-  view: "run", filter: "all", open: new Set(), briefs: {}, user: "",
+  view: "run", filter: "all", open: new Set(), briefs: {}, user: "", typed: {},
 };
 
 // ---------- identity (a per-browser convenience; the API records who decided) ----------
@@ -73,19 +73,24 @@ const shown = r => state.view === "compare" && r.comparison
   : {decision: r.decision, qty: r.recommended_qty, flags: [...r.exception_reasons, ...r.review_flags]};
 const canDecide = () => state.view === "run" && state.run?.status === "completed" && state.status?.planner_enabled;
 
-function strip(r) {
+// Cover after ordering qty units: (on hand + on order + qty) / adjusted weekly demand.
+const coverAfter = (r, qty) => r.adjusted_weekly ? (r.stock_on_hand + (r.open_po_units || 0) + qty) / r.adjusted_weekly : null;
+
+function strip(r, qty) {
   if (r.weeks_cover == null) return `<span class="note">No cover figure: ${esc(r.exception_reasons.join("; "))}</span>`;
   const S = 16, W = 300, x = v => Math.min(v, S) / S * W;
   const lo = x(r.min_cover), hi = x(r.max_cover), c = x(r.weeks_cover), u = x(r.weeks_cover_unadjusted);
-  const post = r.post_order_cover != null
-    ? `<line x1="${c}" y1="17" x2="${x(r.post_order_cover)}" y2="17" stroke="var(--short)" stroke-width="3"/><circle cx="${x(r.post_order_cover)}" cy="17" r="3" fill="var(--short)"/>` : "";
-  const ticks = [0, 4, 8, 12, 16].map(t => `<text x="${x(t)}" y="34" font-size="9" fill="var(--muted)" text-anchor="${t === 0 ? "start" : t === 16 ? "end" : "middle"}">${t}${t === 16 ? "+ wks" : ""}</text>`).join("");
-  return `<svg class="strip" viewBox="0 0 ${W} 36" preserveAspectRatio="xMinYMid meet" role="img" aria-label="${r.weeks_cover} weeks of cover; target ${r.min_cover} to ${r.max_cover}">
-    <rect x="${lo}" y="9" width="${Math.max(hi - lo, 2)}" height="16" fill="var(--band)"/>
+  const after = qty != null ? coverAfter(r, qty) : r.post_order_cover;
+  const post = after != null && after !== r.weeks_cover
+    ? `<line class="after-line" x1="${c}" y1="17" x2="${x(after)}" y2="17" stroke="var(--accent)" stroke-width="3"/><circle class="after-dot" cx="${x(after)}" cy="17" r="4" fill="var(--accent)"/>` : "";
+  const ticks = [0, 4, 8, 12, 16].map(t => `<text x="${x(t)}" y="40" font-size="10.5" fill="var(--muted)" text-anchor="${t === 0 ? "start" : t === 16 ? "end" : "middle"}">${t}${t === 16 ? "+ wks" : ""}</text>`).join("");
+  return `<svg class="strip" viewBox="0 0 ${W} 42" preserveAspectRatio="xMinYMid meet" role="img" aria-label="${r.weeks_cover} weeks of cover; target ${r.min_cover} to ${r.max_cover}">
+    <rect x="0" y="16" width="${W}" height="2" fill="var(--band)" opacity=".55"/>
+    <rect x="${lo}" y="7" width="${Math.max(hi - lo, 2)}" height="20" fill="var(--band)"/>
     ${r.festival ? `<circle cx="${u}" cy="17" r="4.5" fill="none" stroke="var(--muted)" stroke-width="1.5"/>` : ""}
     ${post}
     <circle cx="${c}" cy="17" r="6" fill="var(--ink)"/>
-    ${r.weeks_cover > S ? `<text x="${W - 2}" y="8" font-size="10" text-anchor="end" fill="var(--long)" font-weight="700">${r.weeks_cover} wks</text>` : ""}
+    ${r.weeks_cover > S ? `<text x="${W - 2}" y="8" font-size="10" text-anchor="end" fill="var(--pause)" font-weight="600">${r.weeks_cover} wks</text>` : ""}
     ${ticks}</svg>`;
 }
 
@@ -95,8 +100,8 @@ function spark(r) {
   const bars = r.units.map((u, i) => `<rect x="${i * bw + 1.5}" y="${y(u)}" width="${bw - 3}" height="${H - y(u)}" fill="${i >= n - 4 ? "var(--ink)" : "var(--band)"}"><title>${esc(r.weeks[i])}: ${u} units</title></rect>`).join("");
   return `<svg viewBox="0 0 ${W} ${H + 14}" style="width:100%;max-width:440px" role="img" aria-label="${n} weeks of unit sales, last 4 highlighted">
     ${bars}
-    <line x1="0" x2="${W}" y1="${y(r.avg_12w)}" y2="${y(r.avg_12w)}" stroke="var(--long)" stroke-dasharray="4 3"/>
-    ${r.festival ? `<line x1="0" x2="${W}" y1="${y(r.adjusted_weekly)}" y2="${y(r.adjusted_weekly)}" stroke="var(--turmeric)" stroke-width="1.5"/>` : ""}
+    <line x1="0" x2="${W}" y1="${y(r.avg_12w)}" y2="${y(r.avg_12w)}" stroke="var(--pause)" stroke-dasharray="4 3" stroke-width="1.5"/>
+    ${r.festival ? `<line x1="0" x2="${W}" y1="${y(r.adjusted_weekly)}" y2="${y(r.adjusted_weekly)}" stroke="var(--ochre)" stroke-width="2"/>` : ""}
     <text x="0" y="${H + 12}" font-size="9" fill="var(--muted)">${esc(r.weeks[0])}</text>
     <text x="${W}" y="${H + 12}" font-size="9" fill="var(--muted)" text-anchor="end">${esc(r.weeks[n - 1])}</text>
   </svg>
@@ -119,7 +124,7 @@ function actHTML(r) {
   }
   if (!canDecide()) return `<span class="note">${state.status?.planner_enabled ? "Read only" : "Paused"}</span>`;
   const open = state.open.has(r.sku_id);
-  return `<button class="btn primary" data-approve="${r.sku_id}">Approve</button>
+  return `<button class="btn dark" data-approve="${r.sku_id}">Approve</button>
     <button class="btn" data-toggle="${r.sku_id}" aria-expanded="${open}">${open ? "Close" : "Review"}</button>`;
 }
 
@@ -136,26 +141,56 @@ function detailHTML(r) {
     <div>
       ${flags.length ? `<h3>Why this needs your eye</h3><ul class="flags">${flags.map(f => `<li>${esc(f)}</li>`).join("")}</ul>`
         : `<h3>No flags</h3><p class="note">All values sit clearly inside the documented rules.</p>`}
-      ${r.decision === "REORDER" ? `<p class="note">After this order: ${r.post_order_cover} weeks of cover. To reach ${r.min_cover} weeks: ${fmt(r.qty_to_min_cover)} units. Mid-window: ${fmt(r.qty_to_mid_cover)} units.</p>` : ""}
+      ${r.qty_to_min_cover != null ? `<p class="note">To reach ${r.min_cover} weeks: ${fmt(r.qty_to_min_cover)} units. Middle of the window: ${fmt(r.qty_to_mid_cover)} units.</p>` : ""}
       ${canDecide() ? `<div class="editbox">
-        <label class="field">Order qty <input type="number" min="1" step="1" id="q-${r.sku_id}" value="${r.recommended_qty || ""}"></label>
+        <label class="field">Order qty <input type="number" min="1" step="1" id="q-${r.sku_id}" data-live="${r.sku_id}" value="${draftQty(r) || ""}"></label>
         <label class="field">Reason <select id="rs-${r.sku_id}">${reasons}</select></label>
         <button class="btn" data-edit="${r.sku_id}">Save change</button>
         <button class="btn" data-reject="${r.sku_id}">Reject</button>
         ${r.current_decision ? "" : `<button class="btn primary" data-approve="${r.sku_id}">Approve ${fmt(r.recommended_qty)}</button>`}
-      </div>` : ""}
+      </div>
+      <p class="live ${liveClass(r, draftQty(r))}" id="live-${r.sku_id}" aria-live="polite">${liveText(r, draftQty(r))}</p>` : ""}
       ${r.needs_review && aiOn && canDecide() ? `<div>
         <button class="btn" data-brief="${r.id}" style="margin-top:12px">${ai ? "Ask again" : "Get AI brief"}</button>
         ${ai ? `<div class="ai">${ai}</div>` : ""}</div>` : ""}
     </div></div>`;
 }
 
+// The live thing: type a quantity, see where the cover lands against Raghav's window before saving.
+function liveText(r, qty) {
+  if (!qty || r.adjusted_weekly == null) return "";
+  const c = coverAfter(r, qty);
+  const where = c < r.min_cover ? `still below the ${r.min_cover}-week minimum`
+    : c > r.max_cover ? `above the ${r.max_cover}-week maximum` : "inside the window";
+  return `With ${fmt(qty)} units: <b>${c.toFixed(1)} weeks</b> of cover, ${where}.`;
+}
+
+// What the planner has typed survives re-renders (a brief arriving, a status refresh).
+const draftQty = r => state.typed[r.sku_id] ?? r.current_decision?.qty ?? r.recommended_qty;
+const liveClass = (r, qty) => { const c = coverAfter(r, qty); return c == null || !qty ? "" : c < r.min_cover || c > r.max_cover ? "out" : "in"; };
+
+function onQtyInput(input) {
+  const r = state.recs.find(x => x.sku_id === input.dataset.live);
+  const qty = Number(input.value) || 0;
+  state.typed[r.sku_id] = qty;
+  const cell = $(`#row-${r.sku_id} .strip-cell`);
+  if (cell) cell.innerHTML = strip(r, qty);
+  const live = $(`#live-${r.sku_id}`), c = coverAfter(r, qty);
+  live.innerHTML = liveText(r, qty);
+  live.className = "live " + liveClass(r, qty);
+}
+document.addEventListener("input", e => { if (e.target.dataset?.live) onQtyInput(e.target); });
+
+const RANK = {EXCEPTION: 0, REORDER: 1, PAUSE: 2, HOLD: 3};
+const urgency = r => [RANK[shown(r).decision] ?? 4, r.needs_review ? 0 : 1, (r.weeks_cover ?? 0) / (r.min_cover || 1)];
+const byUrgency = (a, b) => { const x = urgency(a), y = urgency(b); return x[0] - y[0] || x[1] - y[1] || x[2] - y[2]; };
+
 function rowHTML(r) {
   const s = shown(r);
   return `<div class="line">
-      <div><div class="name">${esc((r.sku_name || r.sku_id).replace("Freshroots ", ""))}${r.needs_review ? '<span class="flagdot" title="Needs review"></span>' : ""}</div>
-        <div class="meta">${esc(r.sku_id)}, ${fmt(r.stock_on_hand)} in stock${r.open_po_units ? `, ${fmt(r.open_po_units)} on order` : ""}${r.perishability === "High" ? ', <span class="perish">perishable</span>' : ""}</div></div>
-      <div class="strip-cell">${strip(r)}</div>
+      <div><div class="sku-name">${esc((r.sku_name || r.sku_id).replace("Freshroots ", ""))}</div>
+        <div class="meta">${esc(r.sku_id)}, ${fmt(r.stock_on_hand)} in stock${r.open_po_units ? `, ${fmt(r.open_po_units)} on order` : ""}${r.perishability === "High" ? ', <span class="perish">perishable</span>' : ""}${r.needs_review ? ' · <span class="review">needs review</span>' : ""}</div></div>
+      <div class="strip-cell">${strip(r, state.open.has(r.sku_id) && state.typed[r.sku_id] != null ? state.typed[r.sku_id] : undefined)}</div>
       <div><span class="dec ${s.decision}">${s.decision.charAt(0) + s.decision.slice(1).toLowerCase()}</span><div class="qty">${qtyText(s.decision, s.qty)}</div></div>
       <div class="act">${actHTML(r)}</div>
     </div>
@@ -170,11 +205,11 @@ function render(only) {
   if (!run) { $("#list").innerHTML = `<p class="empty">No planning runs yet.</p>`; return; }
 
   const d = new Date(run.run_date + "T00:00:00");
-  $("#title").textContent = `Planning run, ${d.toLocaleDateString("en-GB", {weekday: "long", day: "numeric", month: "long"})}`;
+  $("#title").textContent = d.toLocaleDateString("en-GB", {weekday: "long", day: "numeric", month: "long"});
   document.title = `Freshroots planning run – ${run.run_date}`;
   $("#sub").textContent = run.status === "failed"
     ? `This run stopped on data errors, so it made no recommendations. ${run.error || ""}`
-    : `${rs.length} SKUs checked against Raghav’s reorder rules.${run.festival_month ? ` This is a festival month, so the demand baseline is raised ${Math.round((run.config.festival_uplift || 0) * 100)}%.` : ""} Nothing reaches Zoho until you approve it, and then only as a draft.`;
+    : `Planning run: ${rs.length} SKUs checked against Raghav’s reorder rules.${run.festival_month ? ` This is a festival month, so the demand baseline is raised ${Math.round((run.config.festival_uplift || 0) * 100)}%.` : ""} Nothing reaches Zoho until you approve it, and then only as a draft.`;
 
   $("#held").classList.toggle("hidden", run.status !== "held");
   $("#heldWhy").textContent = (run.hold_reasons || []).join("; ") + " Nobody can act on it until an admin releases it.";
@@ -186,14 +221,15 @@ function render(only) {
     ? `This run compares demand with the ${basis === "unadjusted" ? "normal" : "festival-raised"} baseline.`
     : `Showing what the ${other === "adjusted" ? "festival-raised" : "normal"} baseline would give. Read only.`;
 
-  const vis = rs.filter(r => state.filter === "all" || (state.filter === "review" ? r.needs_review : shown(r).decision === state.filter));
+  const vis = rs.filter(r => state.filter === "all" || (state.filter === "review" ? r.needs_review : shown(r).decision === state.filter))
+    .sort(byUrgency);
   const count = k => k === "all" ? rs.length : k === "review" ? rs.filter(r => r.needs_review).length : rs.filter(r => shown(r).decision === k).length;
   const pending = rs.filter(r => !r.current_decision).length;
   const units = rs.reduce((a, r) => a + (shown(r).qty || 0), 0);
   $("#tally").innerHTML = [["all", "All SKUs", `${pending} awaiting decision`], ["review", "Need review", "flagged by the rules"],
     ["REORDER", "Reorder", `${fmt(units)} units proposed`], ["PAUSE", "Pause", "skip next order"], ["HOLD", "Hold", "inside window"],
     ...(count("EXCEPTION") ? [["EXCEPTION", "Exception", "planner decides"]] : [])]
-    .map(([k, l, s]) => `<button data-filter="${k}" aria-pressed="${state.filter === k}"><b>${count(k)}</b>${l}<br><span>${s}</span></button>`).join("");
+    .map(([k, l, s], i) => `<button data-filter="${k}" aria-pressed="${state.filter === k}" style="--i:${i + 3}"><b>${count(k)}</b><span><span class="lbl">${l}</span><span class="sub">${s}</span></span></button>`).join("");
 
   if (only && $(`#row-${only}`) && vis.some(r => r.sku_id === only)) {
     const r = rs.find(x => x.sku_id === only);
@@ -201,7 +237,7 @@ function render(only) {
     $(`#row-${only}`).classList.toggle("open", state.open.has(only));
   } else {
     $("#list").innerHTML = vis.length
-      ? vis.map(r => `<div class="row${state.open.has(r.sku_id) ? " open" : ""}" id="row-${r.sku_id}">${rowHTML(r)}</div>`).join("")
+      ? vis.map((r, i) => `<div class="row${state.open.has(r.sku_id) ? " open" : ""}" id="row-${r.sku_id}" style="--i:${i + 8}">${rowHTML(r)}</div>`).join("")
       : `<p class="empty">No SKUs in this view.</p>`;
   }
 
@@ -212,6 +248,7 @@ function render(only) {
     ? lines.map(r => `<tr><td>${esc(r.sku_name.replace("Freshroots ", ""))}${zohoTag(r.current_decision)}</td><td>${fmt(r.current_decision.qty)}</td></tr>`).join("")
       + `<tr><td><b>Total units</b></td><td>${fmt(lines.reduce((a, r) => a + r.current_decision.qty, 0))}</td></tr>`
     : `<tr><td class="empty">Approve a reorder line to add it here.</td></tr>`;
+  $("#topUnits").textContent = `${fmt(lines.reduce((a, r) => a + r.current_decision.qty, 0))} units`;
   $("#savePo").href = `/api/runs/${run.id}/export/zoho.csv`;
   const unsent = lines.filter(r => !r.current_decision.zoho_po_id);
   const zohoOn = state.status?.zoho_api_configured && state.status?.switches?.find?.(s => s.name === "zoho_api_enabled")?.enabled;
@@ -227,9 +264,9 @@ function render(only) {
 function renderPrePo() {
   const alerts = Array.isArray(state.status?.open_alerts) ? state.status.open_alerts.filter(a => a.kind === "pre_po") : [];
   $("#prepo").classList.toggle("hidden", !alerts.length);
-  $("#prepo").innerHTML = alerts.map(a => `<div class="banner prepo" role="alert"><div class="wrap">
+  $("#prepo").innerHTML = alerts.map(a => `<div class="banner prepo" role="alert">
     <b>Check before releasing:</b> ${esc(a.message)}
-    <button class="btn on-dark" data-resolve="${a.id}">Checked, dismiss</button></div></div>`).join("");
+    <button class="btn dark" data-resolve="${a.id}">Checked, dismiss</button></div>`).join("");
 }
 
 function renderStatus() {
@@ -241,7 +278,7 @@ function renderStatus() {
     ? s.switches.map(x => `<div class="sw"><span>${esc(SWITCH_LABELS[x.name] || x.name)}</span>
         <span><span class="state ${x.enabled ? "on" : "off"}">${x.enabled ? "On" : "Off"}</span>
         ${isAdmin() ? ` <button class="btn" data-switch="${x.name}" data-to="${!x.enabled}">${x.enabled ? "Turn off" : "Turn on"}</button>` : ""}</span>
-        <span class="why">${esc(x.updated_by || "")}${x.reason ? `: ${esc(x.reason)}` : ""}</span></div>`).join("")
+        ${x.updated_by && x.updated_by !== "install" ? `<span class="why">${esc(x.updated_by)}: ${esc(x.reason)}</span>` : ""}</div>`).join("")
     : `<p class="error">Switches unreadable (${esc(s.switches?.error)}): everything is treated as OFF.</p>`;
   const f = s.data_freshness || {};
   const fresh = f.error ? `<div class="stat-block bad">Freshness unknown: ${esc(f.error)}</div>`
@@ -261,6 +298,7 @@ async function decide(sku, body) {
     const out = await api(`/recommendations/${r.id}/decision`, {method: "POST", body: JSON.stringify(body)});
     Object.assign(r, {...out.detail, ...out});
     state.open.delete(sku);
+    delete state.typed[sku];
     showError("");
     render(sku);
     const row = $(`#row-${sku}`);
@@ -322,7 +360,6 @@ document.addEventListener("click", async e => {
   }
 });
 
-// AI briefs arrive in Phase 4; until the endpoint exists the button reports it plainly.
 async function getBrief(recId, btn) {
   btn.disabled = true; btn.textContent = "Thinking…";
   const r = state.recs.find(x => x.id === recId);
@@ -357,5 +394,6 @@ $("#runPick").addEventListener("change", e => loadRun(e.target.value).catch(err 
     await loadStatus();
     await loadRuns();
   } catch (e) { showError(`Could not load the planner: ${e.message}`); }
+  setTimeout(() => document.body.classList.add("settled"), 1500);  // the entrance plays once, not on every re-render
   setInterval(loadStatus, 60000);
 })();
