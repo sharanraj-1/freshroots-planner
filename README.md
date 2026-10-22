@@ -33,8 +33,8 @@ and `scheduler` (cron: run Monday/Thursday 06:00, dead-man check 07:00, daily pr
 Health: `GET /health`. Operations: [docs/RUNBOOK.md](docs/RUNBOOK.md). KPIs: [docs/KPIS.md](docs/KPIS.md).
 
 ## Vercel (demo)
-`api/index.py` serves the FastAPI app as a Vercel Python function (`vercel.json` routes every path
-to it). With no `DATABASE_URL` it runs a **demo**: each fresh instance seeds a throwaway SQLite
+Vercel's FastAPI preset serves `planner.api.main:app` (set in `pyproject.toml` under `[tool.vercel]`);
+the workbench's static files go to Vercel's CDN. With no `DATABASE_URL` it runs a **demo**: each fresh instance seeds a throwaway SQLite
 database in `/tmp` from `data/seed`, so decisions reset when the instance is recycled, and
 different instances do not share them. There is no scheduler on Vercel.
 

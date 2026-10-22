@@ -13,3 +13,7 @@ inbound/*
 logs/*
 !logs/.gitkeep
 .taste-skill/
+.vercel
+
+.vercel
+.env*

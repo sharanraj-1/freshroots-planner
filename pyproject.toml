@@ -39,3 +39,7 @@ select = ["E", "F", "I", "B", "UP"]
 
 [tool.ruff.lint.flake8-bugbear]
 extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Header"]
+
+[tool.vercel]
+# Vercel's FastAPI preset: the app object to serve (see README, "Vercel (demo)").
+entrypoint = "planner.api.main:app"

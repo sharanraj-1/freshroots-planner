@@ -1,10 +1,3 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "functions": {
-    "api/index.py": {
-      "includeFiles": "{planner/**,data/seed/**,config.json}",
-      "maxDuration": 60
-    }
-  },
-  "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }]
+  "$schema": "https://openapi.vercel.sh/vercel.json"
 }

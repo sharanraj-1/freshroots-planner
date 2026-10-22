@@ -15,3 +15,5 @@ scripts
 .pytest_cache
 .ruff_cache
 *.egg-info
+.env*
+.vercel

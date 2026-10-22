@@ -3,6 +3,7 @@
 Run locally:  uvicorn planner.api.main:app --reload
 """
 
+import os
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -12,6 +13,14 @@ from planner.api import control_routes
 from planner.api.routes import router
 
 WEB_DIR = Path(__file__).resolve().parents[1] / "web"
+
+# On Vercel with no database configured, run the seeded demo (planner/demo.py).
+if os.environ.get("VERCEL") and "DATABASE_URL" not in os.environ:
+    os.environ["DATABASE_URL"] = "sqlite:////tmp/freshroots_demo.db"
+    os.environ["PLANNER_DEMO"] = "1"
+    from planner.demo import bootstrap
+
+    bootstrap()
 
 app = FastAPI(title="Freshroots demand planner", version="0.1.0")
 app.include_router(router, prefix="/api")
