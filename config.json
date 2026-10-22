@@ -22,5 +22,13 @@
     "max_inventory_age_days": 1,
     "max_sales_age_days": 13
   },
-  "home_regions": ["Maharashtra", "Goa"]
+  "home_regions": ["Maharashtra", "Goa"],
+  "decision_reasons": [
+    "Festival judgment",
+    "Known distributor or market event",
+    "Supplier or MOQ constraint",
+    "Data looks wrong",
+    "Shelf-life risk",
+    "Other"
+  ]
 }

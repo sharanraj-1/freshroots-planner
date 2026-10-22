@@ -51,6 +51,7 @@ class RulesConfig(_Strict):
     review_flags: ReviewFlags
     data_freshness: DataFreshness
     home_regions: list[str]
+    decision_reasons: list[str] = Field(min_length=1)  # required for every edit and reject
 
 
 def load_config(path=None, run_date=None, trend_basis=None):
