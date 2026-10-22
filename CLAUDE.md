@@ -38,6 +38,14 @@ REORDER SKU001=750, SKU003=300, SKU004=150, SKU011=500, SKU013=120; PAUSE SKU006
 - Every number in an AI brief must exist in, or be derivable from, its input. Reject the brief otherwise.
 - No secrets in code. Read keys from environment variables.
 
+## Kill switches (must always work, even if other parts are broken)
+- Switches: planner_enabled, scheduled_runs_enabled, ai_assistant_enabled, zoho_api_enabled,
+  pre_po_check_enabled. Stored in the DB, flipped by CLI or admin, every flip audited with a reason.
+- Every job and endpoint checks its switch first. A switch read failure means OFF (fail closed).
+- Tripwires can turn switches off or HOLD a run automatically; only a human turns them back on.
+- When the planner is off, the fallback is Raghav's manual Excel process (see RUNBOOK).
+- GET /status always reports the true state of every switch, last run and data freshness.
+
 ## Stack (keep it simple – a 3-person IT team maintains this)
 - Python 3.11+, FastAPI, SQLAlchemy, Postgres (SQLite allowed for local dev), pydantic for schemas.
 - pytest. ruff for lint/format.

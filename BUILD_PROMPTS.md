@@ -60,6 +60,38 @@ Windows Task Scheduler.
 
 ---
 
+## Phase 2b – Kill switches and monitoring (1–2 days)
+
+```
+Add kill switches and monitoring. Read the "Kill switches" section of CLAUDE.md first.
+1. planner/control/switches.py backed by a `control_switch` table:
+   planner_enabled, scheduled_runs_enabled, ai_assistant_enabled, zoho_api_enabled,
+   pre_po_check_enabled. Every flip stores who, when, reason, old and new value.
+   Flipping requires a reason. Only users in config `switch_admins` can flip.
+2. CLI: `python -m planner.control status|off <switch> --reason ..|on <switch> --reason ..`
+   `off all` turns everything off in one command.
+3. Respect the switches everywhere: a disabled planner refuses to run and the workbench
+   shows a full-width banner "Planner paused – use the manual process"; disabled AI hides
+   the brief button; disabled Zoho API falls back to CSV export.
+4. Automatic tripwires (thresholds in config.json, evaluated after each run):
+   - run PO units > 2x the average of the last 4 runs  -> run is HELD (visible, not actionable)
+   - more than 30% of SKUs changed decision vs the previous run -> run HELD
+   - any data error -> run stopped (existing behaviour)
+   - AI: 2+ grounding failures in a day or any injection detected -> ai_assistant_enabled off
+   - Zoho: 3 consecutive API failures -> zoho_api_enabled off
+   - planner override rate > 40% across the last 4 runs -> warning only (rules may be drifting)
+   Ratio checks are skipped until 4 runs exist. A HELD run needs an admin to release it with a reason.
+5. Dead-man alert: if a scheduled run has not completed by 07:00 on run days, send an alert.
+6. Alerts by email (SMTP from env vars) to config `alert_recipients`, and logged.
+7. GET /status: every switch with last change, last run time and result, data freshness,
+   held runs, tripwire state. Show this as a status panel in the workbench.
+8. docs/RUNBOOK.md section: how to pause, how to resume, the manual fallback process.
+Tests for every switch, every tripwire and the dead-man alert (use a fake clock).
+```
+**Acceptance:** `off all` stops everything within one command; each tripwire fires on a seeded scenario; every flip is in the audit table; /status shows the true state.
+
+---
+
 ## Phase 3 – API and workbench (2–3 days)
 
 ```
