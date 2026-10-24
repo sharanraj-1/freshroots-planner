@@ -137,6 +137,9 @@ Sources: https://www.zoho.com/books/api/v3/purchase-order/ , https://www.zoho.co
 it. Its output, `data/zoho_demo/supplier_master.csv`, is the planner's SKU-to-Zoho mapping: send it
 with the SAP exports (or copy it into `SAP_INBOUND_DIR`).
 
-**Where it is switched on:** locally only (`.env`: `ZOHO_API_ENABLED=true` when you want to push,
-plus the `zoho_api_enabled` switch). The public Vercel demo keeps Zoho off, so anonymous visitors
-cannot create documents in the Books organisation.
+**Where it is switched on:** locally (`.env`: `ZOHO_API_ENABLED=true` plus the `zoho_api_enabled`
+switch) and on the Vercel demo, where the `ZOHO_*` variables are set and `planner/demo.py` loads
+`data/zoho_demo/supplier_master.csv` and turns the switch on at start-up (audited as
+`demo-bootstrap`). The demo is public, so anyone with the link can create *draft* POs in the
+Books organisation; nothing can be issued. Turn it off with the switch, or remove
+`ZOHO_API_ENABLED` in Vercel.
