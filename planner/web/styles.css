@@ -145,7 +145,7 @@ h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.03em;line-height:1
 .legend span{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1.5px solid var(--ink);border-radius:var(--r-pill);
   padding:4px 10px;font-size:13px;font-weight:600}
 .key{display:inline-block}
-.key.band{width:22px;height:10px;border-radius:4px;background:var(--lime);border:1.5px solid var(--ink)}
+.key.win{width:22px;height:10px;border-radius:4px;background:var(--lime);border:1.5px solid var(--ink)}
 .key.dot{width:11px;height:11px;border-radius:50%;background:var(--ink)}
 .key.ring{width:11px;height:11px;border-radius:50%;border:2px solid var(--ink)}
 .key.after{width:18px;height:4px;border-radius:4px;background:var(--tangerine)}
