@@ -1,4 +1,4 @@
-# Zoho Inventory: draft purchase orders
+# Zoho Books / Zoho Inventory: draft purchase orders
 
 The planner creates purchase orders in Zoho Inventory as **drafts only**. It never issues, sends,
 approves, edits or deletes a PO. A person releases each PO inside Zoho.
@@ -110,3 +110,33 @@ Per SKU, `supplier_master.csv` supplies `Zoho_Vendor_ID` (required to send), `Zo
   (item SKUs = planner SKU_IDs), then run `python -m planner.integrations.zoho_setup`. It saves
   `ZOHO_ORGANIZATION_ID` and drafts `out/zoho/supplier_master_draft.csv`. Then follow the
   checklist above from step 3. `ZOHO_API_ENABLED` stays `false` until then.
+
+
+## Zoho Books (in use for the case project, 2026-10-24)
+The planner talks to **Zoho Books** (`ZOHO_PRODUCT=books`) on a separate Zoho account, because the
+first account could not create organisations (code 6063). Books uses the same `/purchaseorders`,
+`/items`, `/contacts` and `/organizations` resources as Inventory under `https://www.zohoapis.in/books/v3`.
+Sources: https://www.zoho.com/books/api/v3/purchase-order/ , https://www.zoho.com/books/api/v3/items/
+
+| Point | Books |
+|---|---|
+| Create PO | `POST /books/v3/purchaseorders?organization_id=...`, `vendor_id` + `line_items[{item_id, quantity, rate}]` |
+| Price field | `rate` (Inventory uses `purchase_rate`) |
+| Item lookup | no SKU filter: `GET /items?search_text=<sku>`, then exact match on `sku` |
+| Scopes held by the planner | `ZohoBooks.purchaseorders.CREATE`, `ZohoBooks.purchaseorders.READ`, `ZohoBooks.settings.READ`, `ZohoBooks.contacts.READ` |
+| Never called (allowlist) | `/status/open`, `/status/billed`, `/status/cancelled`, `/submit`, `/approve`, `/reject`, `/email`, `PUT`, `DELETE` |
+
+**Verified live** against the demo organisation (MESA SCHOOL OF BUSINESS, India DC):
+- Without `purchaseorder_number`, Books auto-numbers the PO (PO-00001, PO-00002). Unconfirmed point 1: settled.
+- A created PO comes back as `status: draft`. Unconfirmed point 2: settled.
+- Three approved lines across two demo vendors became two draft POs (one per vendor) with reference
+  `FR-2026-10-19-run1`. Delete them in Zoho Books if they are not wanted.
+
+**Demo data** (case project): `scripts/zoho_books_demo_seed.py` created three demo vendors and the
+15 seed SKUs as items (demo purchase costs) using a one-time code with create rights, then revoked
+it. Its output, `data/zoho_demo/supplier_master.csv`, is the planner's SKU-to-Zoho mapping: send it
+with the SAP exports (or copy it into `SAP_INBOUND_DIR`).
+
+**Where it is switched on:** locally only (`.env`: `ZOHO_API_ENABLED=true` when you want to push,
+plus the `zoho_api_enabled` switch). The public Vercel demo keeps Zoho off, so anonymous visitors
+cannot create documents in the Books organisation.

@@ -56,8 +56,13 @@ class FakeZoho:
             self.token_401_once = False
             return httpx.Response(401, json={"code": 57, "message": "invalid token"})
         if request.url.path.endswith("/items"):
+            sku = request.url.params.get("sku") or request.url.params.get("search_text")
             return httpx.Response(
-                200, json={"code": 0, "items": [{"item_id": f"item-{request.url.params['sku']}"}]}
+                200,
+                json={
+                    "code": 0,
+                    "items": [{"item_id": f"item-{sku}", "sku": sku}],
+                },
             )
         if request.method == "POST" and request.url.path.endswith("/purchaseorders"):
             if self.fail_creates:
@@ -291,3 +296,46 @@ def test_push_endpoint_and_csv_only_keeps_unsent_lines(api, run, monkeypatch):
     )
     assert r.status_code == 409 and "already in Zoho" in r.text
     assert api.post(f"/api/runs/{run.id}/push-to-zoho").status_code == 401
+
+
+# ---------- Zoho Books mode ----------
+BOOKS_ENV = {**ENV, "ZOHO_PRODUCT": "books"}
+
+
+def books_client(fake):
+    return zoho.ZohoClient(transport=httpx.MockTransport(fake), env=BOOKS_ENV)
+
+
+def test_books_uses_the_books_api_and_its_rate_field(session, run, cfg):
+    fake = FakeZoho()
+    result = zoho.push_run(session, run, cfg, books_client(fake), sleep=lambda s: None)
+    assert len(result["created"]) == 3
+    po_calls = [r for r in fake.requests if r.method == "POST" and r.url.path.endswith("/purchaseorders")]
+    assert all(
+        str(r.url).startswith("https://www.zohoapis.in/books/v3/purchaseorders?organization_id=60001")
+        for r in po_calls
+    )
+    lines = [li for body in fake.creates() for li in body["line_items"]]
+    assert {"item_id": "Z-ITEM-11", "quantity": 500, "rate": 40.0} in lines
+    assert all("purchase_rate" not in li for li in lines)
+
+
+def test_books_item_lookup_matches_the_exact_sku():
+    def handler(request):
+        if "oauth" in str(request.url):
+            return httpx.Response(200, json={"access_token": "t", "expires_in": 3600})
+        assert request.url.params["search_text"] == "SKU001"
+        return httpx.Response(
+            200,
+            json={
+                "code": 0,
+                "items": [{"item_id": "9", "sku": "SKU0011"}, {"item_id": "7", "sku": "SKU001"}],
+            },
+        )
+
+    assert books_client(handler).item_id_for_sku("SKU001") == "7"
+
+
+def test_unknown_product_is_refused():
+    with pytest.raises(zoho.ZohoError, match="ZOHO_PRODUCT"):
+        zoho.ZohoClient(env={**ENV, "ZOHO_PRODUCT": "crm"})

@@ -49,9 +49,14 @@ def access_token(env):
     return body["access_token"]
 
 
+def base(env):
+    product = "books/v3" if env.get("ZOHO_PRODUCT", "inventory") == "books" else "inventory/v1"
+    return f"https://www.zohoapis.{env.get('ZOHO_DC', 'in')}/{product}"
+
+
 def get(env, token, path, **params):
     r = httpx.get(
-        f"https://www.zohoapis.{env.get('ZOHO_DC', 'in')}/inventory/v1{path}",
+        f"{base(env)}{path}",
         params=params,
         timeout=30,
         headers={"Authorization": f"Zoho-oauthtoken {token}"},
@@ -77,7 +82,10 @@ def main():
             f"https://inventory.zoho.{env.get('ZOHO_DC', 'in')}/ and run this again."
         )
         return 2
-    org = next((o for o in orgs if o.get("is_default_org")), orgs[0])
+    wanted = env.get("ZOHO_ORGANIZATION_ID")
+    org = next((o for o in orgs if str(o["organization_id"]) == wanted), None) or next(
+        (o for o in orgs if o.get("is_default_org")), orgs[0]
+    )
     set_env("ZOHO_ORGANIZATION_ID", org["organization_id"])
     print(f"organisation: {org['name']} ({org.get('currency_code')}) -> ZOHO_ORGANIZATION_ID saved to .env")
 
@@ -119,7 +127,7 @@ def main():
                     "Lead_Time_Weeks": "",
                     "Zoho_Vendor_ID": "",
                     "Zoho_Item_ID": item.get("item_id", ""),
-                    "Unit_Cost_INR": item.get("purchase_rate", ""),
+                    "Unit_Cost_INR": item.get("purchase_rate") or "",
                 }
             )
     matched = sum(1 for s in skus if s["SKU_ID"] in by_sku)

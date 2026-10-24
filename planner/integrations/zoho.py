@@ -1,4 +1,8 @@
-"""Zoho Inventory API: create DRAFT purchase orders, nothing else. See docs/ZOHO.md for sources.
+"""Zoho Books or Zoho Inventory API: create DRAFT purchase orders, nothing else. Sources: docs/ZOHO.md.
+
+ZOHO_PRODUCT picks the product: "books" (https://www.zoho.com/books/api/v3/) or "inventory"
+(https://www.zoho.com/inventory/api/v1/). Both use the same /purchaseorders and /items resources;
+they differ in the base path and in the line-item price field.
 
 Two gates: the ZOHO_API_ENABLED deployment flag and the zoho_api_enabled kill switch.
 The client allows only POST /purchaseorders and GET reads; every other call raises before any
@@ -19,6 +23,8 @@ from planner.control import switches, tripwires
 from planner.control.alerts import raise_alert
 
 log = logging.getLogger("planner.zoho")
+# product -> (API base path, line-item price field)
+PRODUCTS = {"inventory": ("inventory/v1", "purchase_rate"), "books": ("books/v3", "rate")}
 RETRIES = 3  # after the first attempt
 BACKOFF_S = (1, 2, 4)
 PO_NOTES = "Draft from the Freshroots planner. Review and release in Zoho; the planner never issues POs."
@@ -48,7 +54,11 @@ class ZohoClient:
     def __init__(self, transport=None, env=None, clock=time.monotonic):
         env = env or os.environ
         dc = env.get("ZOHO_DC", "in")
-        self.api_base = f"https://www.zohoapis.{dc}/inventory/v1"
+        self.product = env.get("ZOHO_PRODUCT", "inventory").lower()
+        if self.product not in PRODUCTS:
+            raise ZohoError(f"ZOHO_PRODUCT must be one of {list(PRODUCTS)}")
+        base, self.price_field = PRODUCTS[self.product]
+        self.api_base = f"https://www.zohoapis.{dc}/{base}"
         self.token_url = f"https://accounts.zoho.{dc}/oauth/v2/token"
         self.org = env.get("ZOHO_ORGANIZATION_ID", "")
         self.creds = {
@@ -93,7 +103,11 @@ class ZohoClient:
         return body
 
     def item_id_for_sku(self, sku):
-        items = self.request("GET", "/items", params={"sku": sku}).get("items") or []
+        # Inventory filters by exact SKU; Books has no SKU filter, so search and match exactly.
+        params = {"sku": sku} if self.product == "inventory" else {"search_text": sku}
+        items = [
+            i for i in self.request("GET", "/items", params=params).get("items") or [] if i.get("sku") == sku
+        ]
         if not items:
             raise ZohoError(f"no Zoho item with SKU {sku}")
         return str(items[0]["item_id"])
@@ -180,7 +194,7 @@ def push_run(session, run, cfg, client=None, sleep=time.sleep):
                 )
                 line = {"item_id": item_id, "quantity": d.qty}
                 if s.unit_cost_inr is not None:
-                    line["purchase_rate"] = s.unit_cost_inr
+                    line[client.price_field] = s.unit_cost_inr
                 items.append(line)
             po = _with_retries(
                 session, cfg, lambda v=vendor, i=items: client.create_draft_po(v, i, ref, PO_NOTES), sleep
